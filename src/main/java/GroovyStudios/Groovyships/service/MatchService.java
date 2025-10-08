@@ -35,11 +35,12 @@ public class MatchService {
         if (existing.isPresent()) {
             // Si ya existía, se convierte en match
             Match match = existing.get();
-            match.setEsMutuo(true);
+            match.setStatus2("LIKE");
             return matchRepo.save(match);
         } else {
             // Si no existía, se crea un nuevo registro
             Match newLike = new Match(user, target);
+            newLike.setStatus1("LIKE");
             return matchRepo.save(newLike);
         }
     }

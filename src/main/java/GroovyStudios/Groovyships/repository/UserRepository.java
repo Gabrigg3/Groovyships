@@ -1,16 +1,19 @@
 package GroovyStudios.Groovyships.repository;
 
 import GroovyStudios.Groovyships.model.User;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
-@Repository
-public interface UserRepository extends MongoRepository<User, Long> {
+@Document(collection = "users")
+public interface UserRepository extends MongoRepository<User, String> {
 
 
-    Optional<User> findById(Long id);
+    Optional<User> findById(String id);
+    List<Long> findUsersToInteract(String userId);
 
 
 }

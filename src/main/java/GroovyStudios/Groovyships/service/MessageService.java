@@ -17,7 +17,7 @@ public class MessageService {
     @Autowired
     private MatchRepository matchRepository;
 
-    public Message sendMessage(Long matchId, Long senderId, String content) {
+    public Message sendMessage(String matchId, String senderId, String content) {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new RuntimeException("Match no encontrado"));
 
@@ -29,7 +29,7 @@ public class MessageService {
         return messageRepository.save(message);
     }
 
-    public List<Message> getMessages(Long matchId) {
+    public List<Message> getMessages(String matchId) {
         return messageRepository.findByMatchIdOrderBySentAtAsc(matchId);
     }
 }

@@ -16,8 +16,8 @@ public class MessageController {
 
     @PostMapping("/{matchId}/send")
     public ResponseEntity<Message> sendMessage(
-            @PathVariable Long matchId,
-            @RequestParam Long senderId,
+            @PathVariable String matchId,
+            @RequestParam String senderId,
             @RequestBody String content) {
 
         Message message = messageService.sendMessage(matchId, senderId, content);
@@ -25,7 +25,7 @@ public class MessageController {
     }
 
     @GetMapping("/{matchId}")
-    public ResponseEntity<List<Message>> getMessages(@PathVariable Long matchId) {
+    public ResponseEntity<List<Message>> getMessages(@PathVariable String matchId) {
         return ResponseEntity.ok(messageService.getMessages(matchId));
     }
 }

@@ -14,7 +14,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private String nombre;
     private String email;
@@ -22,6 +22,8 @@ public class User {
     private String password;
 
     private Integer edad;
+    private List<Integer> rangoEdad;
+
     private String biografia;
 
     private List<String> intereses;
@@ -96,11 +98,21 @@ public class User {
         this.intereses.add(interes);
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
+
+    public  List<Integer> getRangoEdad() {
+        return rangoEdad;
+    }
+
+    public void setRangoEdad(List<Integer> rangoEdad) {
+        this.rangoEdad = rangoEdad;
+    }
+
+
 }

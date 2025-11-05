@@ -20,12 +20,12 @@ public class MatchService {
         this.userRepo = userRepo;
     }
 
-    public List<Match> getMatchesForUser(Long userId) {
+    public List<Match> getMatchesForUser(String userId) {
         User user = userRepo.findById(userId).orElseThrow();
         return matchRepo.findByUser1OrUser2(user, user);
     }
 
-    public Match interact(Long userId, Long targetId, String action) {
+    public Match interact(String userId, String targetId, String action) {
         User user = userRepo.findById(userId).orElseThrow();
         User target = userRepo.findById(targetId).orElseThrow();
 
@@ -42,20 +42,25 @@ public class MatchService {
 
     }
 
-    public List<User> getSuggestions(Long userId) {
+    public List<User> getSuggestions(String userId) {
         // Obtener el usuario actual
         User user = userRepo.findById(userId).orElseThrow();
         // Obtener todas las interacciones del usuario
         List<Match> interactions = matchRepo.findByUser1OrUser2(user, user);
 
         // Obtener los IDs de los usuarios con los que ya ha interactuado
-        List<Long> interactedUserIds = interactions.stream().map(match -> {
+        List<String> interactedUserIds = interactions.stream().map(match -> {
             if (match.getUsuario().getId().equals(userId)) {
                 return match.getUsuario2().getId();
             } else {
                 return match.getUsuario().getId();
             }
         }).toList();
+
+        //Obtener los usuarios cuya edad está dentro del rango, comparte intereses y buscan lo mismo.
+        List<Long> sharedUsers = userRepo.findUsersToInteract(userId);
+
+
 
         // Filtrar los usuarios que no son el usuario actual y con los que no ha interactuado
         return userRepo.findAll().stream()

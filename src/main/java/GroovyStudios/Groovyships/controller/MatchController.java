@@ -26,22 +26,22 @@ public class MatchController {
     }
 
     @GetMapping("/suggestions/{userId}")
-    public List<User> getSuggestions(@PathVariable Long userId) {
+    public List<User> getSuggestions(@PathVariable String userId) {
         return matchService.getSuggestions(userId);
     }
 
     @PostMapping("/{userId}/like/{targetId}")
-    public Match likeUser(@PathVariable Long userId, @PathVariable Long targetId) {
+    public Match likeUser(@PathVariable String userId, @PathVariable String targetId) {
         return matchService.interact(userId, targetId, "LIKE");
     }
 
     @PostMapping("/{userId}/dislike/{targetId}")
-    public Match dislikeUser(@PathVariable Long userId, @PathVariable Long targetId) {
+    public Match dislikeUser(@PathVariable String userId, @PathVariable String targetId) {
         return matchService.interact(userId, targetId, "DISLIKE");
     }
 
     @GetMapping("/{userId}")
-    public List<Match> getMatches(@PathVariable Long userId) {
+    public List<Match> getMatches(@PathVariable String userId) {
         return matchService.getMatchesForUser(userId);
     }
 }

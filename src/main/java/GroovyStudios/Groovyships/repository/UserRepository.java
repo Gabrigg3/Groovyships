@@ -1,11 +1,13 @@
 package GroovyStudios.Groovyships.repository;
 
 import GroovyStudios.Groovyships.model.User;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+@Repository
+public interface UserRepository extends MongoRepository<User, Long> {
 
 
     Optional<User> findById(Long id);

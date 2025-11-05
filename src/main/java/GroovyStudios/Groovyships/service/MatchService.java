@@ -25,23 +25,41 @@ public class MatchService {
         return matchRepo.findByUser1OrUser2(user, user);
     }
 
-    public Match likeUser(Long userId, Long targetId) {
+    public Match interact(Long userId, Long targetId, String action) {
         User user = userRepo.findById(userId).orElseThrow();
         User target = userRepo.findById(targetId).orElseThrow();
 
-        // Ver si ya existe una interacción inversa (target ya le dio like)
         Optional<Match> existing = matchRepo.findByUser1AndUser2(target, user);
 
-        if (existing.isPresent()) {
-            // Si ya existía, se convierte en match
-            Match match = existing.get();
-            match.setStatus2("LIKE");
-            return matchRepo.save(match);
-        } else {
-            // Si no existía, se crea un nuevo registro
-            Match newLike = new Match(user, target);
-            newLike.setStatus1("LIKE");
-            return matchRepo.save(newLike);
+        Match newInteraction = null;
+        if (action.equals("LIKE")) {
+            newInteraction= new Match(user, target, "LIKE");
+        } else if (action.equals("DISLIKE")) {
+            newInteraction= new Match(user, target, "DISLIKE");
         }
+        matchRepo.save(newInteraction);
+        return newInteraction;
+
+    }
+
+    public List<User> getSuggestions(Long userId) {
+        // Obtener el usuario actual
+        User user = userRepo.findById(userId).orElseThrow();
+        // Obtener todas las interacciones del usuario
+        List<Match> interactions = matchRepo.findByUser1OrUser2(user, user);
+
+        // Obtener los IDs de los usuarios con los que ya ha interactuado
+        List<Long> interactedUserIds = interactions.stream().map(match -> {
+            if (match.getUsuario().getId().equals(userId)) {
+                return match.getUsuario2().getId();
+            } else {
+                return match.getUsuario().getId();
+            }
+        }).toList();
+
+        // Filtrar los usuarios que no son el usuario actual y con los que no ha interactuado
+        return userRepo.findAll().stream()
+                .filter(u -> !u.getId().equals(userId) && !interactedUserIds.contains(u.getId()))
+                .toList();
     }
 }

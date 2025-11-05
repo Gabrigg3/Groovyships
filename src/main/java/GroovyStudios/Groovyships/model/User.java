@@ -4,8 +4,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import java.util.HashMap;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.HashMap;
+import java.util.List;
+
+@Document(collection = "users")
 public class User {
 
     @Id
@@ -19,12 +23,17 @@ public class User {
 
     private Integer edad;
     private String biografia;
-    private HashMap<String,Boolean> intereses;
+
+    private List<String> intereses;
 
     public User(String nombre, String email, String password) {
         this.nombre = nombre;
         this.email = email;
         this.password = password;
+    }
+
+    public User() {
+
     }
 
     public String getNombre() {
@@ -75,18 +84,23 @@ public class User {
         this.biografia = biografia;
     }
 
-    public HashMap<String, Boolean> getIntereses() {
+    public List<String> getIntereses() {
         return intereses;
     }
 
-    public void setIntereses(HashMap<String, Boolean> intereses) {
+    public void setIntereses(List<String> intereses) {
         this.intereses = intereses;
     }
 
-    public void switchInteres(String interes) {
-        if (this.intereses.containsKey(interes)) {
-            this.intereses.put(interes, !this.intereses.get(interes));
-        }
+    public void addInteres(String interes) {
+        this.intereses.add(interes);
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

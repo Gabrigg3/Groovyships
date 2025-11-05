@@ -13,7 +13,6 @@ public interface UserRepository extends MongoRepository<User, String> {
 
 
     Optional<User> findById(String id);
-    List<Long> findUsersToInteract(String userId);
 
 
 }

@@ -22,14 +22,14 @@ public class MatchService {
 
     public List<Match> getMatchesForUser(String userId) {
         User user = userRepo.findById(userId).orElseThrow();
-        return matchRepo.findByUser1OrUser2(user, user);
+        return matchRepo.findByUsuarioOrTarget(user, user);
     }
 
     public Match interact(String userId, String targetId, String action) {
         User user = userRepo.findById(userId).orElseThrow();
         User target = userRepo.findById(targetId).orElseThrow();
 
-        Optional<Match> existing = matchRepo.findByUser1AndUser2(target, user);
+        Optional<Match> existing = matchRepo.findByUsuarioAndTarget(target, user);
 
         Match newInteraction = null;
         if (action.equals("LIKE")) {
@@ -46,7 +46,7 @@ public class MatchService {
         // Obtener el usuario actual
         User user = userRepo.findById(userId).orElseThrow();
         // Obtener todas las interacciones del usuario
-        List<Match> interactions = matchRepo.findByUser1OrUser2(user, user);
+        List<Match> interactions = matchRepo.findByUsuarioOrTarget(user, user);
 
         // Obtener los IDs de los usuarios con los que ya ha interactuado
         List<String> interactedUserIds = interactions.stream().map(match -> {
@@ -58,7 +58,7 @@ public class MatchService {
         }).toList();
 
         //Obtener los usuarios cuya edad está dentro del rango, comparte intereses y buscan lo mismo.
-        List<Long> sharedUsers = userRepo.findUsersToInteract(userId);
+        //List<Long> sharedUsers = userRepo.findUsersToInteract(userId);
 
 
 

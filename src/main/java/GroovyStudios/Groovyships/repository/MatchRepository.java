@@ -12,9 +12,9 @@ import java.util.Optional;
 @Document(collection = "matches")
 public interface MatchRepository extends MongoRepository<Match, String> {
 
-    List<Match> findByUser1OrUser2(User user1, User user2);
+    List<Match> findByUsuarioOrTarget(User usuario, User target);
 
-    Optional<Match> findByUser1AndUser2(User user1, User user2);
+    Optional<Match> findByUsuarioAndTarget(User usuario, User target);
 
 
 }

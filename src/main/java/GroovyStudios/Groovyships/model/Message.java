@@ -1,6 +1,8 @@
 package GroovyStudios.Groovyships.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -8,15 +10,10 @@ import java.time.LocalDateTime;
 @Document(collection = "messages")
     public class Message {
         @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
 
-        @ManyToOne
-        @JoinColumn(name = "match_id")
         private Match match;
 
-        @ManyToOne
-        @JoinColumn(name = "sender_id")
 
         private User sender;
 

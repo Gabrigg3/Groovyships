@@ -1,8 +1,8 @@
 package GroovyStudios.Groovyships.model;
 
 import GroovyStudios.Groovyships.model.User;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -17,13 +17,13 @@ public class Match {
     //la clave primaria son los dos usuarios
     private User usuario;
     private String status;
-    private User objetivo;
+    private User target;
     private LocalDateTime fechaMatch;
 
     public Match(User usuario, User target, String status) {
         this.usuario = usuario;
         this.status = status;  // Puede ser "null", "LIKE" o "DISLIKE"
-        this.objetivo = target;
+        this.target = target;
         this.fechaMatch = LocalDateTime.now();
     }
 
@@ -46,10 +46,10 @@ public class Match {
     }
 
     public User getUsuario2() {
-        return objetivo;
+        return target;
     }
     public void setUsuario2(User usuario2) {
-        this.objetivo = usuario2;
+        this.target = usuario2;
     }
 
     public LocalDateTime getFechaMatch() {

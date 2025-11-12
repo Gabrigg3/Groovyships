@@ -26,15 +26,15 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
 	// JavaFX
-	implementation 'org.openjfx:javafx-controls:25.0.1'
-	implementation 'org.openjfx:javafx-fxml:25.0.1'
+	implementation 'org.openjfx:javafx-controls:23'
+	implementation 'org.openjfx:javafx-fxml:23'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 javafx {
-	version = "25.0.1"
+	version = "23"
 	modules = [ 'javafx.controls', 'javafx.fxml' ]
 }
 
@@ -43,5 +43,11 @@ tasks.named('test') {
 }
 
 application {
-	mainClass = 'com.tu.paquete.Main'
+	mainClass = 'GroovyStudios.Groovyships.GroovyshipsApplication'
+}
+
+run {
+	jvmArgs = [
+			'--add-modules', 'javafx.controls,javafx.fxml'
+	]
 }

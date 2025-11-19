@@ -7,6 +7,8 @@ import javafx.stage.Stage;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
 public class GroovyshipsApplication extends Application {
@@ -16,6 +18,11 @@ public class GroovyshipsApplication extends Application {
     public static void main(String[] args) {
         // Lanza la aplicación JavaFX
         Application.launch(args);
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 
     @Override
@@ -29,6 +36,7 @@ public class GroovyshipsApplication extends Application {
         System.out.println("Iniciando interfaz JavaFX...");
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/GUI/main.fxml"));
         fxmlLoader.setControllerFactory(springContext::getBean);
+
         Scene scene = new Scene(fxmlLoader.load(), 600, 400);
         stage.setTitle("Groovyships");
         stage.setScene(scene);

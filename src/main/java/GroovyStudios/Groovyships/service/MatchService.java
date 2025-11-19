@@ -67,4 +67,8 @@ public class MatchService {
                 .filter(u -> !u.getId().equals(userId) && !interactedUserIds.contains(u.getId()))
                 .toList();
     }
+
+    public List<Match> getAllMatches() {
+        return matchRepo.findAll();
+    }
 }

@@ -35,7 +35,6 @@ public class MainController {
     @FXML private Label locationLabel;
     @FXML private Label descriptionLabel;
     @FXML private Label interestsLabel;
-    @FXML private Label detailsLabel;
 
     private int currentIndex = 0;
 
@@ -62,7 +61,6 @@ public class MainController {
         locationLabel.setText("📍 " + p[2]);
         descriptionLabel.setText(p[4]);
         interestsLabel.setText(p[5]);
-        detailsLabel.setText(p[6]);
         photoView.setImage(new Image(p[3]));
     }
 

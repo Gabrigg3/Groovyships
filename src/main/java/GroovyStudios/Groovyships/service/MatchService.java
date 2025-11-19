@@ -61,10 +61,10 @@ public class MatchService {
         //List<Long> sharedUsers = userRepo.findUsersToInteract(userId);
 
 
-
         // Filtrar los usuarios que no son el usuario actual y con los que no ha interactuado
         return userRepo.findAll().stream()
-                .filter(u -> !u.getId().equals(userId) && !interactedUserIds.contains(u.getId()))
+                .filter(u -> !u.getId().equals(userId))       // no él mismo
+                .filter(u -> !interactedUserIds.contains(u.getId()))  // no repetidos
                 .toList();
     }
 

@@ -1,31 +1,15 @@
-/*package GroovyStudios.Groovyships.controller;
-
-import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import org.springframework.stereotype.Component;
-
-@Component
-public class MainController {
-
-    @FXML
-    private Label label;
-
-    @FXML
-    public void initialize() {
-        System.out.println("MainController cargado correctamente");
-        if (label != null) {
-            label.setText("¡Hola desde JavaFX y Spring Boot! xoxo");
-        }
-    }
-}*/
-
 package GroovyStudios.Groovyships.controller;
 
+import GroovyStudios.Groovyships.model.User;
+import GroovyStudios.Groovyships.service.MatchService;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class MainController {
@@ -36,50 +20,101 @@ public class MainController {
     @FXML private Label descriptionLabel;
     @FXML private Label interestsLabel;
 
+    private final MatchService matchService;
 
-    private final String CURRENT_USER_ID = "u1";
+    private final String CURRENT_USER_ID = "u2";
+    private List<User> suggestions;
     private int currentIndex = 0;
 
-    // Datos de prueba (puedes conectar con MongoDB luego)
-    private final String[][] profiles = {
-            {"María", "27", "Madrid", "https://i.imgur.com/Qp7R9YH.jpeg",
+    // Dummy temporal (por si Mongo está vacío)
+    private final List<User> dummyProfiles = Arrays.asList(
+            createDummy("1", "María", 27, "Madrid",
                     "Amante de los gatos, el café y los viajes.",
-                    "🐱 Animales, 🎶 Música, ☕ Cafés bonitos",
-                    "Profesión: Arquitecta\nSigno: Libra"},
-            {"Carlos", "30", "Barcelona", "https://i.imgur.com/hsQHYmh.jpeg",
-                    "Fotógrafo aficionado y amante del mar.",
-                    "📷 Fotografía, 🌊 Surf, 🍣 Sushi",
-                    "Profesión: Ingeniero\nSigno: Tauro"}
-    };
+                    Arrays.asList("Animales", "Música", "Café"),
+                    "https://i.imgur.com/Qp7R9YH.jpeg"),
+            createDummy("2", "Carlos", 30, "Barcelona",
+                    "Fotógrafo aficionado.",
+                    Arrays.asList("Surf", "Foto", "Sushi"),
+                    "https://i.imgur.com/hsQHYmh.jpeg")
+    );
+
+    public MainController(MatchService matchService) {
+        this.matchService = matchService;
+    }
 
     @FXML
     public void initialize() {
-        loadProfile(currentIndex);
+
+        // Obtener sugerencias desde MongoDB
+        suggestions = matchService.getSuggestions(CURRENT_USER_ID);
+
+        if (suggestions == null || suggestions.isEmpty()) {
+            System.out.println("⚠️ No hay usuarios en MongoDB → usando perfiles dummy.");
+            suggestions = dummyProfiles;
+        }
+
+        loadProfile(0);
     }
 
+    // -----------------------------
+    // Mostrar perfil
+    // -----------------------------
     private void loadProfile(int index) {
-        String[] p = profiles[index];
-        nameLabel.setText(p[0] + ", " + p[1]);
-        locationLabel.setText("📍 " + p[2]);
-        descriptionLabel.setText(p[4]);
-        interestsLabel.setText(p[5]);
-        photoView.setImage(new Image(p[3]));
+        User u = suggestions.get(index);
+
+        nameLabel.setText(u.getNombre() + ", " +
+                (u.getEdad() != null ? u.getEdad() : "—"));
+
+        locationLabel.setText("📍 " +
+                (u.getUbicacion() != null ? u.getUbicacion() : "Sin ubicación"));
+
+        descriptionLabel.setText(
+                u.getBiografia() != null ? u.getBiografia() : "Sin biografía"
+        );
+
+        interestsLabel.setText(
+                u.getIntereses() != null ? String.join(", ", u.getIntereses()) : "—"
+        );
+
+        String foto = u.getFotoUrl() != null ? u.getFotoUrl() : "https://via.placeholder.com/300";
+        photoView.setImage(new Image(foto));
     }
 
+    // -----------------------------
+    // Like / Dislike
+    // -----------------------------
     @FXML
     private void onLike() {
-        System.out.println("💖 Like a " + profiles[currentIndex][0]);
+        User target = suggestions.get(currentIndex);
+        matchService.interact(CURRENT_USER_ID, target.getId(), "LIKE");
         nextProfile();
     }
 
     @FXML
     private void onDislike() {
-        System.out.println("❌ Pasar " + profiles[currentIndex][0]);
+        User target = suggestions.get(currentIndex);
+        matchService.interact(CURRENT_USER_ID, target.getId(), "DISLIKE");
         nextProfile();
     }
 
     private void nextProfile() {
-        currentIndex = (currentIndex + 1) % profiles.length;
+        currentIndex = (currentIndex + 1) % suggestions.size();
         loadProfile(currentIndex);
+    }
+
+    // Dummy constructor
+    private static User createDummy(
+            String id, String nombre, int edad, String ubicacion,
+            String biografia, List<String> intereses, String fotoUrl
+    ) {
+        User u = new User();
+        u.setId(id);
+        u.setNombre(nombre);
+        u.setEdad(edad);
+        u.setUbicacion(ubicacion);
+        u.setBiografia(biografia);
+        u.setIntereses(intereses);
+        u.setFotoUrl(fotoUrl);
+        return u;
     }
 }

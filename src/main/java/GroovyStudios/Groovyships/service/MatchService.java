@@ -20,57 +20,51 @@ public class MatchService {
         this.userRepo = userRepo;
     }
 
-    // ----------------------------------------------------
-    // 🔹 Si el usuario NO está en Mongo, creamos uno dummy
-    // ----------------------------------------------------
-    private User getOrCreateDummy(String id) {
-
-        return userRepo.findById(id).orElseGet(() -> {
-            User u = new User();
-            u.setId(id);
-            u.setNombre("Dummy " + id);
-            u.setEdad(25);
-            u.setEmail(id + "@dummy.com");
-            return userRepo.save(u);   // se guarda para evitar más errores
-        });
-    }
-
-    // ----------------------------------------------------
     public List<Match> getMatchesForUser(String userId) {
-        User user = getOrCreateDummy(userId);
+        User user = userRepo.findById(userId).orElseThrow();
         return matchRepo.findByUsuarioOrTarget(user, user);
     }
 
-    // ----------------------------------------------------
     public Match interact(String userId, String targetId, String action) {
-
         User user = userRepo.findById(userId).orElseThrow();
         User target = userRepo.findById(targetId).orElseThrow();
 
-        // Ignorar matches recíprocos → solo importa lo que hace el usuario actual
-        Match interaction = new Match(user, target, action);
-        matchRepo.save(interaction);
+        Optional<Match> existing = matchRepo.findByUsuarioAndTarget(target, user);
 
-        return interaction;
+        Match newInteraction = null;
+        if (action.equals("LIKE")) {
+            newInteraction= new Match(user, target, "LIKE");
+        } else if (action.equals("DISLIKE")) {
+            newInteraction= new Match(user, target, "DISLIKE");
+        }
+        matchRepo.save(newInteraction);
+        return newInteraction;
+
     }
 
-    // ----------------------------------------------------
     public List<User> getSuggestions(String userId) {
-
-        User user = getOrCreateDummy(userId);
-
+        // Obtener el usuario actual
+        User user = userRepo.findById(userId).orElseThrow();
+        // Obtener todas las interacciones del usuario
         List<Match> interactions = matchRepo.findByUsuarioOrTarget(user, user);
 
-        List<String> interactedUserIds = interactions.stream()
-                .map(m -> m.getUsuario().getId().equals(userId)
-                        ? m.getUsuario2().getId()
-                        : m.getUsuario().getId()
-                )
-                .toList();
+        // Obtener los IDs de los usuarios con los que ya ha interactuado
+        List<String> interactedUserIds = interactions.stream().map(match -> {
+            if (match.getUsuario().getId().equals(userId)) {
+                return match.getUsuario2().getId();
+            } else {
+                return match.getUsuario().getId();
+            }
+        }).toList();
 
+        //Obtener los usuarios cuya edad está dentro del rango, comparte intereses y buscan lo mismo.
+        //List<Long> sharedUsers = userRepo.findUsersToInteract(userId);
+
+
+
+        // Filtrar los usuarios que no son el usuario actual y con los que no ha interactuado
         return userRepo.findAll().stream()
-                .filter(u -> !u.getId().equals(userId))
-                .filter(u -> !interactedUserIds.contains(u.getId()))
+                .filter(u -> !u.getId().equals(userId) && !interactedUserIds.contains(u.getId()))
                 .toList();
     }
 }

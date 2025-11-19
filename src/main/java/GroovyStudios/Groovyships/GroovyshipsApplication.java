@@ -34,7 +34,7 @@ public class GroovyshipsApplication extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         System.out.println("Iniciando interfaz JavaFX...");
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/GUI/main.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/gui/main.fxml"));
         fxmlLoader.setControllerFactory(springContext::getBean);
 
         Scene scene = new Scene(fxmlLoader.load(), 600, 400);
@@ -48,4 +48,3 @@ public class GroovyshipsApplication extends Application {
         springContext.close();
     }
 }
-

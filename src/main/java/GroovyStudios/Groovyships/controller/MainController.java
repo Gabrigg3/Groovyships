@@ -36,6 +36,8 @@ public class MainController {
     @FXML private Label descriptionLabel;
     @FXML private Label interestsLabel;
 
+
+    private final String CURRENT_USER_ID = "u1";
     private int currentIndex = 0;
 
     // Datos de prueba (puedes conectar con MongoDB luego)

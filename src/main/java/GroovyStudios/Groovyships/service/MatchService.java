@@ -42,9 +42,9 @@ public class MatchService {
         }
 
         Match newInteraction = null;
-        if ("LIKE".equals(action)) {
+        if (action.equals("LIKE")) {
             newInteraction = new Match(user, target, "LIKE");
-        } else if ("DISLIKE".equals(action)) {
+        } else if (action.equals("DISLIKE")) {
             newInteraction = new Match(user, target, "DISLIKE");
         }
 
@@ -81,5 +81,9 @@ public class MatchService {
         return userRepo.findAll().stream()
                 .filter(u -> !u.getId().equals(userId) && !interactedUserIds.contains(u.getId()))
                 .toList();
+    }
+
+    public List<Match> getAllMatches() {
+        return matchRepo.findAll();
     }
 }

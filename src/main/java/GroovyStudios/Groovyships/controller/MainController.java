@@ -26,6 +26,8 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import GroovyStudios.Groovyships.service.MatchService;
 import GroovyStudios.Groovyships.repository.UserRepository;
@@ -34,6 +36,8 @@ import GroovyStudios.Groovyships.model.Match;
 
 @Component
 public class MainController {
+
+    private static final Logger logger = LoggerFactory.getLogger(MainController.class);
 
     @FXML private ImageView photoView;
     @FXML private Label nameLabel;
@@ -104,19 +108,8 @@ public class MainController {
         try {
             Match m = matchService.interact(currentUserId, targetId, "LIKE");
             System.out.println("Match creado: " + (m != null ? m.getId() : "(sin id)"));
-            // Mostrar feedback al usuario
-            Alert a = new Alert(Alert.AlertType.INFORMATION);
-            a.setTitle("Like");
-            a.setHeaderText(null);
-            a.setContentText("Has dado like a " + profiles[currentIndex][0]);
-            a.showAndWait();
         } catch (Exception e) {
-            e.printStackTrace();
-            Alert a = new Alert(Alert.AlertType.ERROR);
-            a.setTitle("Error");
-            a.setHeaderText("No se pudo registrar el like");
-            a.setContentText(e.getMessage());
-            a.showAndWait();
+            logger.error("Error al registrar like para targetId=" + targetId, e);
         }
         nextProfile();
     }
@@ -128,7 +121,7 @@ public class MainController {
             String targetId = profileIds[currentIndex];
             matchService.interact(currentUserId, targetId, "DISLIKE");
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error al registrar dislike", e);
         }
         nextProfile();
     }

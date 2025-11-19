@@ -1,14 +1,8 @@
 package GroovyStudios.Groovyships.controller;
 
-import org.springframework.stereotype.Service;
-
 import GroovyStudios.Groovyships.model.Match;
 import GroovyStudios.Groovyships.model.User;
 import GroovyStudios.Groovyships.service.MatchService;
-
-import org.springframework.stereotype.Service;
-
-
 
 import org.springframework.web.bind.annotation.*;
 
@@ -43,5 +37,10 @@ public class MatchController {
     @GetMapping("/{userId}")
     public List<Match> getMatches(@PathVariable String userId) {
         return matchService.getMatchesForUser(userId);
+    }
+
+    @GetMapping("/all")
+    public List<Match> getAllMatches() {
+        return matchService.getAllMatches();
     }
 }

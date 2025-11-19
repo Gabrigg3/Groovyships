@@ -31,14 +31,29 @@ public class MatchService {
 
         Optional<Match> existing = matchRepo.findByUsuarioAndTarget(target, user);
 
-        Match newInteraction = null;
-        if (action.equals("LIKE")) {
-            newInteraction= new Match(user, target, "LIKE");
-        } else if (action.equals("DISLIKE")) {
-            newInteraction= new Match(user, target, "DISLIKE");
+        // Si existe una interacción previa en sentido inverso y ambas son LIKE -> convertir a MATCH
+        if (existing.isPresent() && "LIKE".equals(action)) {
+            Match prev = existing.get();
+            if ("LIKE".equals(prev.getStatus1())) {
+                prev.setStatus1("MATCH");
+                matchRepo.save(prev);
+                return prev;
+            }
         }
-        matchRepo.save(newInteraction);
-        return newInteraction;
+
+        Match newInteraction = null;
+        if ("LIKE".equals(action)) {
+            newInteraction = new Match(user, target, "LIKE");
+        } else if ("DISLIKE".equals(action)) {
+            newInteraction = new Match(user, target, "DISLIKE");
+        }
+
+        if (newInteraction != null) {
+            matchRepo.save(newInteraction);
+            return newInteraction;
+        }
+
+        throw new IllegalArgumentException("Acción no soportada: " + action);
 
     }
 

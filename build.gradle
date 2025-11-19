@@ -3,7 +3,7 @@ plugins {
 	id 'application'
 	id 'org.springframework.boot' version '4.0.0-SNAPSHOT'
 	id 'io.spring.dependency-management' version '1.1.7'
-	id 'org.openjfx.javafxplugin' version '0.1.0'
+	id 'org.openjfx.javafxplugin' version '0.0.14'
 }
 
 group = 'GroovyStudios'
@@ -26,15 +26,17 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
 	// JavaFX
-	implementation 'org.openjfx:javafx-controls:23'
-	implementation 'org.openjfx:javafx-fxml:23'
+	//implementation 'org.openjfx:javafx-controls:23'
+	//implementation 'org.openjfx:javafx-fxml:23'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+
 }
 
 javafx {
-	version = "23"
+	version = "21"
 	modules = [ 'javafx.controls', 'javafx.fxml' ]
 }
 
@@ -46,8 +48,12 @@ application {
 	mainClass = 'GroovyStudios.Groovyships.GroovyshipsApplication'
 }
 
+
 run {
-	jvmArgs = [
-			'--add-modules', 'javafx.controls,javafx.fxml'
-	]
+    doFirst {
+        jvmArgs = [
+                '--module-path', configurations.runtimeClasspath.files.join(File.pathSeparator),
+                '--add-modules', 'javafx.controls,javafx.fxml'
+        ]
+    }
 }

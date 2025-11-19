@@ -27,6 +27,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.springframework.stereotype.Component;
 
+import GroovyStudios.Groovyships.service.MatchService;
+import GroovyStudios.Groovyships.repository.UserRepository;
+import GroovyStudios.Groovyships.model.User;
+import GroovyStudios.Groovyships.model.Match;
+
 @Component
 public class MainController {
 
@@ -38,6 +43,13 @@ public class MainController {
     @FXML private Label detailsLabel;
 
     private int currentIndex = 0;
+
+    // IDs para los perfiles (simulan usuarios en BD)
+    private final String currentUserId = "current-user-1";
+    private final String[] profileIds = {"u1", "u2"};
+
+    private final MatchService matchService;
+    private final UserRepository userRepository;
 
     // Datos de prueba (puedes conectar con MongoDB luego)
     private final String[][] profiles = {
@@ -51,9 +63,28 @@ public class MainController {
                     "Profesión: Ingeniero\nSigno: Tauro"}
     };
 
+    public MainController(MatchService matchService, UserRepository userRepository) {
+        this.matchService = matchService;
+        this.userRepository = userRepository;
+    }
+
     @FXML
     public void initialize() {
+        // Asegurar que el usuario actual y los perfiles de prueba existen en la BD
+        seedUserIfMissing(currentUserId, "Yo");
+        seedUserIfMissing(profileIds[0], "María");
+        seedUserIfMissing(profileIds[1], "Carlos");
+
         loadProfile(currentIndex);
+    }
+
+    private void seedUserIfMissing(String id, String nombre) {
+        if (userRepository.findById(id).isEmpty()) {
+            User u = new User(nombre, nombre.toLowerCase() + "@example.com", "password");
+            u.setId(id);
+            userRepository.save(u);
+            System.out.println("Seeded user: " + id + " (" + nombre + ")");
+        }
     }
 
     private void loadProfile(int index) {
@@ -68,13 +99,37 @@ public class MainController {
 
     @FXML
     private void onLike() {
-        System.out.println("💖 Like a " + profiles[currentIndex][0]);
+        String targetId = profileIds[currentIndex];
+        System.out.println("💖 Like a " + profiles[currentIndex][0] + " (id=" + targetId + ")");
+        try {
+            Match m = matchService.interact(currentUserId, targetId, "LIKE");
+            System.out.println("Match creado: " + (m != null ? m.getId() : "(sin id)"));
+            // Mostrar feedback al usuario
+            Alert a = new Alert(Alert.AlertType.INFORMATION);
+            a.setTitle("Like");
+            a.setHeaderText(null);
+            a.setContentText("Has dado like a " + profiles[currentIndex][0]);
+            a.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setTitle("Error");
+            a.setHeaderText("No se pudo registrar el like");
+            a.setContentText(e.getMessage());
+            a.showAndWait();
+        }
         nextProfile();
     }
 
     @FXML
     private void onDislike() {
         System.out.println("❌ Pasar " + profiles[currentIndex][0]);
+        try {
+            String targetId = profileIds[currentIndex];
+            matchService.interact(currentUserId, targetId, "DISLIKE");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         nextProfile();
     }
 

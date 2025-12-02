@@ -7,7 +7,7 @@
 
 <SplitPane xmlns="http://javafx.com/javafx/23"
            xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="GroovyStudios.Groovyships.controller.MainController"
+           fx:controller="groovystudios.groovyships.controller.MainController"
            dividerPositions="0.5">
 
     <items>

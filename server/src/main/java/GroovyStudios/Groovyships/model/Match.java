@@ -1,7 +1,5 @@
 package GroovyStudios.Groovyships.model;
 
-import GroovyStudios.Groovyships.model.User;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 

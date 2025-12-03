@@ -1,4 +1,4 @@
-package GroovyStudios.Groovyships.repository;
+package groovystudios.groovyships.repository;
 
 import GroovyStudios.Groovyships.model.User;
 import org.springframework.data.mongodb.core.mapping.Document;

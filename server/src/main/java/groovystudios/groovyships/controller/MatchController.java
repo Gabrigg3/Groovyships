@@ -1,4 +1,4 @@
-package GroovyStudios.Groovyships.controller;
+package groovystudios.groovyships.controller;
 
 import GroovyStudios.Groovyships.model.Match;
 import GroovyStudios.Groovyships.model.User;

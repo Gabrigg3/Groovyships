@@ -1,4 +1,4 @@
-package GroovyStudios.Groovyships.model;
+package groovystudios.groovyships.model;
 
 import org.springframework.data.annotation.Id;
 

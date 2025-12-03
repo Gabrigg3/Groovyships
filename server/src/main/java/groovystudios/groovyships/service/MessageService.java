@@ -1,4 +1,4 @@
-package GroovyStudios.Groovyships.service;
+package groovystudios.groovyships.service;
 
 import GroovyStudios.Groovyships.model.Match;
 import GroovyStudios.Groovyships.model.Message;

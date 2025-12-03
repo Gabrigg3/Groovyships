@@ -1,4 +1,4 @@
-package GroovyStudios.Groovyships.config;
+package groovystudios.groovyships.config;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;

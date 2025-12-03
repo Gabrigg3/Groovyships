@@ -1,4 +1,4 @@
-package GroovyStudios.Groovyships.controller;
+package groovystudios.groovyships.controller;
 
 import GroovyStudios.Groovyships.model.Message;
 import GroovyStudios.Groovyships.service.MessageService;

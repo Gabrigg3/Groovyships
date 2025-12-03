@@ -1,4 +1,4 @@
-package GroovyStudios.Groovyships.repository;
+package groovystudios.groovyships.repository;
 import GroovyStudios.Groovyships.model.Message;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.repository.MongoRepository;

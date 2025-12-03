@@ -1,4 +1,4 @@
-package GroovyStudios.Groovyships.controller;
+package groovystudios.groovyships.controller;
 
 import GroovyStudios.Groovyships.model.User;
 import GroovyStudios.Groovyships.repository.UserRepository;

@@ -1,7 +1,7 @@
 package groovystudios.groovyships.controller;
 
-import GroovyStudios.Groovyships.model.Message;
-import GroovyStudios.Groovyships.service.MessageService;
+import groovystudios.groovyships.model.Message;
+import groovystudios.groovyships.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

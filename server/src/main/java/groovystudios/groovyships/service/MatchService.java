@@ -1,9 +1,9 @@
 package groovystudios.groovyships.service;
 
-import GroovyStudios.Groovyships.model.Match;
-import GroovyStudios.Groovyships.model.User;
-import GroovyStudios.Groovyships.repository.MatchRepository;
-import GroovyStudios.Groovyships.repository.UserRepository;
+import groovystudios.groovyships.model.Match;
+import groovystudios.groovyships.model.User;
+import groovystudios.groovyships.repository.MatchRepository;
+import groovystudios.groovyships.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

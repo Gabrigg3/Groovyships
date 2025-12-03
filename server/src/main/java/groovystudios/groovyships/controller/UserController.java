@@ -1,7 +1,7 @@
 package groovystudios.groovyships.controller;
 
-import GroovyStudios.Groovyships.model.User;
-import GroovyStudios.Groovyships.repository.UserRepository;
+import groovystudios.groovyships.model.User;
+import groovystudios.groovyships.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

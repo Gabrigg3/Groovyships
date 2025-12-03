@@ -1,8 +1,8 @@
 package groovystudios.groovyships.controller;
 
-import GroovyStudios.Groovyships.model.Match;
-import GroovyStudios.Groovyships.model.User;
-import GroovyStudios.Groovyships.service.MatchService;
+import groovystudios.groovyships.model.Match;
+import groovystudios.groovyships.model.User;
+import groovystudios.groovyships.service.MatchService;
 
 import org.springframework.web.bind.annotation.*;
 

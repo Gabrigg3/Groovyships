@@ -1,9 +1,9 @@
 package groovystudios.groovyships.service;
 
-import GroovyStudios.Groovyships.model.Match;
-import GroovyStudios.Groovyships.model.Message;
-import GroovyStudios.Groovyships.repository.MatchRepository;
-import GroovyStudios.Groovyships.repository.MessageRepository;
+import groovystudios.groovyships.model.Match;
+import groovystudios.groovyships.model.Message;
+import groovystudios.groovyships.repository.MatchRepository;
+import groovystudios.groovyships.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

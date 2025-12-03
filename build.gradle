@@ -1,0 +1,59 @@
+plugins {
+	id 'java'
+	id 'application'
+	id 'org.springframework.boot' version '4.0.0-SNAPSHOT'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.openjfx.javafxplugin' version '0.0.14'
+}
+
+group = 'GroovyStudios'
+version = '0.0.1-SNAPSHOT'
+description = 'Social media to meet other groovers just like you!'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+	maven { url = 'https://repo.spring.io/snapshot' }
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
+	// JavaFX
+	//implementation 'org.openjfx:javafx-controls:23'
+	//implementation 'org.openjfx:javafx-fxml:23'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+
+}
+
+javafx {
+	version = "21"
+	modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+application {
+	mainClass = 'GroovyStudios.Groovyships.GroovyshipsApplication'
+}
+
+
+run {
+    doFirst {
+        jvmArgs = [
+                '--module-path', configurations.runtimeClasspath.files.join(File.pathSeparator),
+                '--add-modules', 'javafx.controls,javafx.fxml'
+        ]
+    }
+}

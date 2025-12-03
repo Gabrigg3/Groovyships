@@ -1,4 +1,4 @@
-package GroovyStudios.Groovyships;
+package groovystudios.groovyships;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,7 +1,7 @@
 package groovystudios.groovyships.controller;
 
-import GroovyStudios.Groovyships.model.User;
-import GroovyStudios.Groovyships.service.MatchService;
+import groovystudios.groovyships.model.UserLight;
+import groovystudios.groovyships.service.MatchService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -23,11 +23,11 @@ public class MainController {
     private final MatchService matchService;
 
     private final String CURRENT_USER_ID = "u2";
-    private List<User> suggestions;
+    private List<UserLight> suggestions;
     private int currentIndex = 0;
 
     // Dummy temporal (por si Mongo está vacío)
-    private final List<User> dummyProfiles = Arrays.asList(
+    private final List<UserLight> dummyProfiles = Arrays.asList(
             createDummy("1", "María", 27, "Madrid",
                     "Amante de los gatos, el café y los viajes.",
                     Arrays.asList("Animales", "Música", "Café"),
@@ -60,7 +60,7 @@ public class MainController {
     // Mostrar perfil
     // -----------------------------
     private void loadProfile(int index) {
-        User u = suggestions.get(index);
+        UserLight u = suggestions.get(index);
 
         nameLabel.setText(u.getNombre() + ", " +
                 (u.getEdad() != null ? u.getEdad() : "—"));
@@ -85,14 +85,14 @@ public class MainController {
     // -----------------------------
     @FXML
     private void onLike() {
-        User target = suggestions.get(currentIndex);
+        UserLight target = suggestions.get(currentIndex);
         matchService.interact(CURRENT_USER_ID, target.getId(), "LIKE");
         nextProfile();
     }
 
     @FXML
     private void onDislike() {
-        User target = suggestions.get(currentIndex);
+        UserLight target = suggestions.get(currentIndex);
         matchService.interact(CURRENT_USER_ID, target.getId(), "DISLIKE");
         nextProfile();
     }
@@ -103,11 +103,11 @@ public class MainController {
     }
 
     // Dummy constructor
-    private static User createDummy(
+    private static UserLight createDummy(
             String id, String nombre, int edad, String ubicacion,
             String biografia, List<String> intereses, String fotoUrl
     ) {
-        User u = new User();
+        UserLight u = new UserLight();
         u.setId(id);
         u.setNombre(nombre);
         u.setEdad(edad);

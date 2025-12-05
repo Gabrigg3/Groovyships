@@ -18,7 +18,7 @@ dependencies {
     // JavaFX (opcional, pero recomendable para evitar warnings en IntelliJ)
     implementation "org.openjfx:javafx-controls:21"
     implementation "org.openjfx:javafx-fxml:21"
-
+    implementation 'com.google.code.gson:gson:2.11.0'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 }
 

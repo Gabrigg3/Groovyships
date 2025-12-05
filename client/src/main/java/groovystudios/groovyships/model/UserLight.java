@@ -1,6 +1,10 @@
 package groovystudios.groovyships.model;
 
 import java.util.List;
+import com.google.gson.Gson;
+
+import java.lang.reflect.Type;
+import com.google.gson.reflect.TypeToken;
 
 public class UserLight {
 
@@ -14,9 +18,9 @@ public class UserLight {
     private String biografia;
     private List<String> intereses;
 
-    // 🔹 NUEVOS CAMPOS
     private String ubicacion;
     private String fotoUrl;
+
 
     public UserLight() {}
 
@@ -25,7 +29,6 @@ public class UserLight {
     }
 
     // --- Getters y Setters ---
-
     public String getId() {
         return id;
     }
@@ -68,7 +71,6 @@ public class UserLight {
         this.intereses = intereses;
     }
 
-    // 🔹 NUEVO: ubicación
     public String getUbicacion() {
         return ubicacion;
     }
@@ -76,11 +78,19 @@ public class UserLight {
         this.ubicacion = ubicacion;
     }
 
-    // 🔹 NUEVO: fotoUrl
     public String getFotoUrl() {
         return fotoUrl;
     }
     public void setFotoUrl(String fotoUrl) {
         this.fotoUrl = fotoUrl;
     }
+
+
+
+    public static List<UserLight> parseList(String json) {
+        Gson gson = new Gson();
+        Type listType = new TypeToken<List<UserLight>>(){}.getType();
+        return gson.fromJson(json, listType);
+    }
+
 }

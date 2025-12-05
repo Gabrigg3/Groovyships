@@ -1,10 +1,12 @@
 package groovystudios.groovyships.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
+@TypeAlias("User")
 @Document(collection = "users")
 public class User {
 
@@ -24,7 +26,7 @@ public class User {
 
     // 🔹 NUEVOS CAMPOS
     private String ubicacion;
-    private String fotoUrl;
+    private List<String> fotoUrl;
 
     public User() {}
 
@@ -108,10 +110,10 @@ public class User {
     }
 
     // 🔹 NUEVO: fotoUrl
-    public String getFotoUrl() {
+    public List<String> getFotoUrl() {
         return fotoUrl;
     }
-    public void setFotoUrl(String fotoUrl) {
+    public void setFotoUrl(List<String> fotoUrl) {
         this.fotoUrl = fotoUrl;
     }
 }

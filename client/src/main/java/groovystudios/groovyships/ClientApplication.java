@@ -14,7 +14,7 @@ public class ClientApplication extends Application {
     @Override
     public void start(Stage stage) throws Exception {
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/main.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/fxml/main.fxml"));
         Scene scene = new Scene(loader.load());
 
         stage.setTitle("Groovyships Client");

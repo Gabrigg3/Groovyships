@@ -1,17 +1,15 @@
 package groovystudios.groovyships.controller;
 
 import groovystudios.groovyships.model.UserLight;
-import groovystudios.groovyships.service.MatchService;
+import groovystudios.groovyships.api.ClientApi;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
 
-@Component
 public class MainController {
 
     @FXML private ImageView photoView;
@@ -20,7 +18,7 @@ public class MainController {
     @FXML private Label descriptionLabel;
     @FXML private Label interestsLabel;
 
-    private final MatchService matchService;
+    private final ClientApi clientApi = new ClientApi();
 
     private final String CURRENT_USER_ID = "u2";
     private List<UserLight> suggestions;
@@ -37,30 +35,28 @@ public class MainController {
                     Arrays.asList("Surf", "Foto", "Sushi"),
                     "https://i.imgur.com/hsQHYmh.jpeg")
     );
+    public MainController() {}
 
-    public MainController(MatchService matchService) {
-        this.matchService = matchService;
-    }
 
     @FXML
     public void initialize() {
 
         // Obtener sugerencias desde MongoDB
-        suggestions = matchService.getSuggestions(CURRENT_USER_ID);
+        suggestions = clientApi.getSuggestions(CURRENT_USER_ID);
 
         if (suggestions == null || suggestions.isEmpty()) {
             System.out.println("⚠️ No hay usuarios en MongoDB → usando perfiles dummy.");
             suggestions = dummyProfiles;
         }
 
-        loadProfile(0);
+        loadProfile();
     }
 
     // -----------------------------
     // Mostrar perfil
     // -----------------------------
-    private void loadProfile(int index) {
-        UserLight u = suggestions.get(index);
+    private void loadProfile() {
+        UserLight u = suggestions.getFirst();
 
         nameLabel.setText(u.getNombre() + ", " +
                 (u.getEdad() != null ? u.getEdad() : "—"));
@@ -85,21 +81,25 @@ public class MainController {
     // -----------------------------
     @FXML
     private void onLike() {
-        UserLight target = suggestions.get(currentIndex);
-        matchService.interact(CURRENT_USER_ID, target.getId(), "LIKE");
+        UserLight target = suggestions.getFirst();
+        clientApi.sendLike(CURRENT_USER_ID, target.getId());
+        suggestions.removeFirst();
         nextProfile();
     }
 
     @FXML
     private void onDislike() {
         UserLight target = suggestions.get(currentIndex);
-        matchService.interact(CURRENT_USER_ID, target.getId(), "DISLIKE");
+        clientApi.sendDislike(CURRENT_USER_ID, target.getId());
+        suggestions.removeFirst();
         nextProfile();
     }
 
     private void nextProfile() {
-        currentIndex = (currentIndex + 1) % suggestions.size();
-        loadProfile(currentIndex);
+        if(!suggestions.isEmpty()) loadProfile();
+        else{
+            System.out.println("Ya has visto a todas las personas");
+        }
     }
 
     // Dummy constructor

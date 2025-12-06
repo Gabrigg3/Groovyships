@@ -11,14 +11,16 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 
-
-import static java.lang.System.in;
-
-public class ClientApi {
+public class MatchesApi {
 
     private final String serverUrl = "http://localhost:8080";
     private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final AuthApi auth;
 
+
+    public MatchesApi(AuthApi authClient) {
+        this.auth = authClient;
+    }
     // ---------------------------
     // GET → Obtener usuarios sugeridos
     // ---------------------------
@@ -27,14 +29,19 @@ public class ClientApi {
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(serverUrl + "/api/matches/suggestions/" + userId))
+                    .header("Authorization", "Bearer " + auth.getAccessToken())
                     .GET()
                     .build();
 
             HttpResponse<String> response =
                     httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+            if (response.statusCode() == 401) {
+                auth.refreshAccessToken();
+                return getSuggestions(userId); // reintentar
+            }
             // Si la respuesta no es 200 → devolvemos null
-            if (response.statusCode() != 200) {
+            else if (response.statusCode() != 200) {
                 System.out.println("❌ Error al obtener sugerencias: " + response.statusCode());
                 return null;
             }
@@ -74,12 +81,18 @@ public class ClientApi {
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(serverUrl + path))
+                    .header("Authorization", "Bearer " + auth.getAccessToken())
                     .POST(HttpRequest.BodyPublishers.noBody())
                     .header("Content-Type", "application/json")
                     .build();
 
             HttpResponse<String> response =
                     httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 401) {
+                auth.refreshAccessToken();
+                return sendPost(path); // reintentar
+            }
 
             return response.statusCode() >= 200 && response.statusCode() < 300;
 
@@ -88,4 +101,7 @@ public class ClientApi {
             return false;
         }
     }
+
+
+
 }

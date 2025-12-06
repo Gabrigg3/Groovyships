@@ -14,10 +14,17 @@ public class ClientApplication extends Application {
     @Override
     public void start(Stage stage) throws Exception {
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/fxml/main.fxml"));
+        // Cargar la pantalla de Login al iniciar la aplicación
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/fxml/login.fxml"));
+        Parent root = loader.load();
+
+        //Obtener controlador y pasarle el Stage
+        LoginController controller = loader.getController();
+        controller.setStage(stage);
+
         Scene scene = new Scene(loader.load());
 
-        stage.setTitle("Groovyships Client");
+        stage.setTitle("Groovyships - Login");
         stage.setScene(scene);
         stage.show();
     }

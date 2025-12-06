@@ -21,7 +21,7 @@ public class AuthenticationService {
     private final RefreshTokenRepository refreshRepo;
     private final PasswordEncoder passwordEncoder;
 
-    private final String jwtSecret = "SuperSecretoJWTKey"; // cambiar en producción
+    private final String jwtSecret = "GroovySecretJWTKey";
     private final long jwtExpirationMs = 1000 * 60 * 15; // 15 min
     private final long refreshExpirationMs = 1000 * 60 * 60 * 24 * 2; // 2 días
 

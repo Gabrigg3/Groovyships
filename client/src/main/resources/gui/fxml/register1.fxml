@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="CENTER" spacing="12" xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="groovystudios.groovyships.controller.Register1Controller">
+
+    <Label text="Crear Cuenta – Datos Básicos" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+
+    <TextField fx:id="nameField" promptText="Nombre" />
+    <TextField fx:id="emailField" promptText="Email" />
+    <PasswordField fx:id="passwordField" promptText="Contraseña" />
+    <PasswordField fx:id="confirmPasswordField" promptText="Repetir contraseña" />
+
+    <Button text="Continuar" onAction="#onNext" maxWidth="150" />
+    <Hyperlink text="Volver al Login" onAction="#goToLogin" />
+
+</VBox>

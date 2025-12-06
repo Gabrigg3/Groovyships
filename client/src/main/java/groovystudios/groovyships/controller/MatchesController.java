@@ -1,7 +1,7 @@
 package groovystudios.groovyships.controller;
 
 import groovystudios.groovyships.model.UserLight;
-import groovystudios.groovyships.api.ClientApi;
+import groovystudios.groovyships.api.MatchesApi;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -10,7 +10,7 @@ import javafx.scene.image.ImageView;
 import java.util.Arrays;
 import java.util.List;
 
-public class MainController {
+public class MatchesController {
 
     @FXML private ImageView photoView;
     @FXML private Label nameLabel;
@@ -18,7 +18,7 @@ public class MainController {
     @FXML private Label descriptionLabel;
     @FXML private Label interestsLabel;
 
-    private final ClientApi clientApi = new ClientApi();
+    private final MatchesApi matchesApi = new MatchesApi();
 
     private final String CURRENT_USER_ID = "u2";
     private List<UserLight> suggestions;
@@ -35,14 +35,14 @@ public class MainController {
                     Arrays.asList("Surf", "Foto", "Sushi"),
                     "https://i.imgur.com/hsQHYmh.jpeg")
     );
-    public MainController() {}
+    public MatchesController() {}
 
 
     @FXML
     public void initialize() {
 
         // Obtener sugerencias desde MongoDB
-        suggestions = clientApi.getSuggestions(CURRENT_USER_ID);
+        suggestions = matchesApi.getSuggestions(CURRENT_USER_ID);
 
         if (suggestions == null || suggestions.isEmpty()) {
             System.out.println("⚠️ No hay usuarios en MongoDB → usando perfiles dummy.");
@@ -82,7 +82,7 @@ public class MainController {
     @FXML
     private void onLike() {
         UserLight target = suggestions.getFirst();
-        clientApi.sendLike(CURRENT_USER_ID, target.getId());
+        matchesApi.sendLike(CURRENT_USER_ID, target.getId());
         suggestions.removeFirst();
         nextProfile();
     }
@@ -90,7 +90,7 @@ public class MainController {
     @FXML
     private void onDislike() {
         UserLight target = suggestions.get(currentIndex);
-        clientApi.sendDislike(CURRENT_USER_ID, target.getId());
+        matchesApi.sendDislike(CURRENT_USER_ID, target.getId());
         suggestions.removeFirst();
         nextProfile();
     }

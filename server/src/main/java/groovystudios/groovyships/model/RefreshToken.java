@@ -8,20 +8,23 @@ import java.time.Instant;
 public class RefreshToken {
 
     @Id
-    private String id;
+    private String id; //ID único generado por MongoDB
 
-    private String token; // cadena opaca
-    private String userId;
-    private Instant expiryDate;
+    private String token; //Cadena opaca
+    private String userId; //ID del usuario asociado al token
+    private Instant expiryDate; //Fecha de expiración del token
 
+    //Constructor vacío necesario para MongoDB
     public RefreshToken() {}
 
+    //Constructor completo
     public RefreshToken(String token, String userId, Instant expiryDate) {
         this.token = token;
         this.userId = userId;
         this.expiryDate = expiryDate;
     }
 
+    //Getters y Setters
     public String getId() {
         return id;
     }

@@ -9,23 +9,27 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/usuarios")
+
 public class UserController {
     @Autowired
     private UserRepository userRepository;
 
+    //Endpoint para obtener todos los usuarios
+    @GetMapping //Añadido
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
+    //Endpoint para crear un nuevo usuario
     @PostMapping
     public User createUser(@RequestBody User user) {
         return userRepository.save(user);
     }
 
+    //Endpoint para obtener todos los usuarios
     @GetMapping
     public List<User> getUsers() {
         return userRepository.findAll();
     }
-
 
 }

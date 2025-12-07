@@ -11,36 +11,37 @@ import java.util.List;
 public class User {
 
     @Id
-    private String id;
+    private String id; //ID único generado por MongoDB
 
-    private String nombre;
-    private String email;
-    private Integer telefono;
-    private String password;
+    private String nombre; //Nombre del usuario
+    private String email; //Email del usuario
+    private Integer telefono; //Teléfono del usuario
+    private String password; //Contraseña del usuario
 
-    private Integer edad;
-    private List<Integer> rangoEdad;
+    private Integer edad; //Edad del usuario
+    private List<Integer> rangoEdad; //Rango de edad preferido para hacer match
 
-    private String biografia;
-    private List<String> intereses;
+    private String biografia; //Biografía del usuario
+    private List<String> intereses; //Intereses del usuario
 
-    // 🔹 NUEVOS CAMPOS
-    private String ubicacion;
-    private List<String> fotoUrl;
+    private String ubicacion; //Ubicación del usuario
+    private List<String> fotoUrl; //URLs de las fotos del usuario
 
+    //Constructor vacío necesario para MongoDB
     public User() {}
 
+    //Constructor completo
     public User(String nombre, String email, String password) {
         this.nombre = nombre;
         this.email = email;
         this.password = password;
     }
 
-    // --- Getters y Setters ---
-
+    //Getters y Setters
     public String getId() {
         return id;
     }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -48,6 +49,7 @@ public class User {
     public String getNombre() {
         return nombre;
     }
+
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
@@ -55,6 +57,7 @@ public class User {
     public String getEmail() {
         return email;
     }
+
     public void setEmail(String email) {
         this.email = email;
     }
@@ -62,6 +65,7 @@ public class User {
     public Integer getTelefono() {
         return telefono;
     }
+
     public void setTelefono(Integer telefono) {
         this.telefono = telefono;
     }
@@ -69,6 +73,7 @@ public class User {
     public String getPassword() {
         return password;
     }
+
     public void setPassword(String password) {
         this.password = password;
     }
@@ -76,6 +81,7 @@ public class User {
     public Integer getEdad() {
         return edad;
     }
+
     public void setEdad(Integer edad) {
         this.edad = edad;
     }
@@ -83,6 +89,7 @@ public class User {
     public List<Integer> getRangoEdad() {
         return rangoEdad;
     }
+
     public void setRangoEdad(List<Integer> rangoEdad) {
         this.rangoEdad = rangoEdad;
     }
@@ -90,6 +97,7 @@ public class User {
     public String getBiografia() {
         return biografia;
     }
+
     public void setBiografia(String biografia) {
         this.biografia = biografia;
     }
@@ -97,22 +105,23 @@ public class User {
     public List<String> getIntereses() {
         return intereses;
     }
+
     public void setIntereses(List<String> intereses) {
         this.intereses = intereses;
     }
 
-    // 🔹 NUEVO: ubicación
     public String getUbicacion() {
         return ubicacion;
     }
+
     public void setUbicacion(String ubicacion) {
         this.ubicacion = ubicacion;
     }
 
-    // 🔹 NUEVO: fotoUrl
     public List<String> getFotoUrl() {
         return fotoUrl;
     }
+
     public void setFotoUrl(List<String> fotoUrl) {
         this.fotoUrl = fotoUrl;
     }

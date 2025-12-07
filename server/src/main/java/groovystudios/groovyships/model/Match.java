@@ -8,16 +8,16 @@ import java.time.LocalDateTime;
 @Document(collection = "matches")
 public class Match {
 
-
     @Id
-    public String id;
+    public String id; //ID único generado por MongoDB
 
-    //la clave primaria son los dos usuarios
+    //La clave primaria son los dos usuarios
     private User usuario;
     private String status;
     private User target;
     private LocalDateTime fechaMatch;
 
+    //Constructor
     public Match(User usuario, User target, String status) {
         this.usuario = usuario;
         this.status = status;  // Puede ser "null", "LIKE" o "DISLIKE"
@@ -25,13 +25,16 @@ public class Match {
         this.fechaMatch = LocalDateTime.now();
     }
 
+    //Constructor vacío necesario para MongoDB
     public Match() {
 
     }
 
+    //Getters y Setters
     public String getId() {
         return id;
     }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -46,6 +49,7 @@ public class Match {
     public User getUsuario2() {
         return target;
     }
+
     public void setUsuario2(User usuario2) {
         this.target = usuario2;
     }
@@ -57,6 +61,7 @@ public class Match {
     public String getStatus1() {
         return status;
     }
+
     public void setStatus1(String status1) {
         this.status = status1;
     }

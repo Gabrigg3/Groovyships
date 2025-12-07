@@ -9,18 +9,17 @@ import java.time.LocalDateTime;
 @Document(collection = "messages")
     public class Message {
         @Id
-        private Long id;
+        private Long id; //ID único generado por MongoDB
 
-        private Match match;
+        private Match match; //El match al que pertenece el mensaje
 
+        private User sender; //El usuario que envía el mensaje
 
-        private User sender;
+        private String content; //Contenido del mensaje
 
-        private String content;
+        private LocalDateTime sentAt = LocalDateTime.now(); //Fecha y hora en que se envió el mensaje
 
-        private LocalDateTime sentAt = LocalDateTime.now();
-
-        // Getters y setters
+        //Getters y setters
         public Long getId() {
             return id;
         }

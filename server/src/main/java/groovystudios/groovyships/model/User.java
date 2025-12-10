@@ -25,7 +25,11 @@ public class User {
     private List<String> intereses; //Intereses del usuario
 
     private String ubicacion; //Ubicación del usuario
-    private List<String> fotoUrl; //URLs de las fotos del usuario
+    private List<String> imagenes; //URLs de las fotos del usuario
+
+    private List<String> lookingFor;   // ["romance", "amistad"]
+    private String ocupacion; //La ocupación del usuario
+
 
     //Constructor vacío necesario para MongoDB
     public User() {}
@@ -118,11 +122,27 @@ public class User {
         this.ubicacion = ubicacion;
     }
 
-    public List<String> getFotoUrl() {
-        return fotoUrl;
+    public List<String> getImagenes() {
+        return imagenes;
     }
 
-    public void setFotoUrl(List<String> fotoUrl) {
-        this.fotoUrl = fotoUrl;
+    public void setImagenes(List<String> imagenes) {
+        this.imagenes = imagenes;
+    }
+
+    public List<String> getLookingFor() {
+        return lookingFor;
+    }
+
+    public void setLookingFor(List<String> lookingFor) {
+        this.lookingFor = lookingFor;
+    }
+
+    public String getOcupacion() {
+        return ocupacion;
+    }
+
+    public void setOcupacion(String ocupacion) {
+        this.ocupacion = ocupacion;
     }
 }

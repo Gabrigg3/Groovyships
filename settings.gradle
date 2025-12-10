@@ -1,2 +1,2 @@
 rootProject.name = 'Groovyships'
-include 'server', 'client'
+include 'server'

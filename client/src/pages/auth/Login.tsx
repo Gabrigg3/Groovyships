@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Heart } from 'lucide-react';
+import { api } from '@/api/axiosConfig';   // ← axios con baseURL y withCredentials
 
 interface LoginProps {
     onLogin: () => void;
@@ -15,10 +16,41 @@ export function Login({ onLogin }: LoginProps) {
         password: '',
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Aquí iría la lógica de autenticación
-        onLogin();
+        setError(null);
+
+        try {
+            // llamada real al backend
+            const res = await api.post("/auth/login", {
+                email: formData.email,
+                password: formData.password,
+            });
+
+            // respuesta esperada del backend:
+            // {
+            //   accessToken: "...",
+            //   refreshToken?: "...",
+            //   userId: "12345"
+            // }
+
+            const { accessToken, userId } = res.data;
+
+            // guardar access token
+            localStorage.setItem("accessToken", accessToken);
+            localStorage.setItem("userId", userId);
+
+            // avisar al App de que el login fue correcto
+            onLogin();
+
+            // redirigir al home
+            navigate("/");
+        } catch (err) {
+            console.error("Error en login:", err);
+            setError("Credenciales incorrectas");
+        }
     };
 
     return (
@@ -28,13 +60,17 @@ export function Login({ onLogin }: LoginProps) {
                     <div className="bg-primary rounded-full p-4 mb-4">
                         <Heart className="w-12 h-12 text-primary-foreground" strokeWidth={2} fill="currentColor" />
                     </div>
-                    <h1 className="text-primary text-4xl font-bold font-sans mb-2">VibeConnect</h1>
+                    <h1 className="text-primary text-4xl font-bold font-sans mb-2">Groovyships</h1>
                     <p className="text-muted-foreground text-center font-body">
-                        Conecta con tu vibe: Romance, Amistad o Gaming
+                        Conecta con Groovers: ¡romance, amistad o ambos!
                     </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    {error && (
+                        <p className="text-destructive text-center text-sm">{error}</p>
+                    )}
+
                     <div>
                         <label htmlFor="email" className="block text-foreground text-sm font-semibold font-body mb-2">
                             Correo electrónico

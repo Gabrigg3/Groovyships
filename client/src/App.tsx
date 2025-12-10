@@ -10,6 +10,8 @@ import { RegisterStep1 } from './pages/auth/RegisterStep1';
 import { RegisterStep2 } from './pages/auth/RegisterStep2';
 import { AppLayout } from './components/AppLayout';
 
+
+//Falla el Profile
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 

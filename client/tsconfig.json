@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": false,
@@ -18,9 +18,7 @@
     "jsx": "react-jsx",
 
     "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "paths": { "@/*": ["src/*"] }
   },
 
   "include": ["src"],

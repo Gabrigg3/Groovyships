@@ -14,11 +14,7 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
-    //Endpoint para obtener todos los usuarios
-    @GetMapping //Añadido
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
+
 
     //Endpoint para crear un nuevo usuario
     @PostMapping

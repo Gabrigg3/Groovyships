@@ -67,7 +67,12 @@ public class AuthenticationService {
     public User login(String email, String password) {
         User user = userRepo.findByEmail(email).orElseThrow(() -> new RuntimeException("Usuario no encontrado")); //Busca el usuario por email y lanza excepción si no lo encuentra
         //Verifica la contraseña proporcionada con la almacenada
-        if (!passwordEncoder.matches(password, user.getPassword())) {
+        System.out.println(user.getEmail());
+        System.out.println(user.getPassword());
+        System.out.println(passwordEncoder.encode(password));
+        System.out.println("*" + password + "*");
+
+        if (!passwordEncoder.matches(password, user.getPassword().trim())) {
             throw new RuntimeException("Contraseña incorrecta");
         }
         return user; //Devuelve el usuario autenticado

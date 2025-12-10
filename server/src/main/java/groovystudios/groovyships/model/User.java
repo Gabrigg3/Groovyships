@@ -30,7 +30,6 @@ public class User {
     private List<String> lookingFor;   // ["romance", "amistad"]
     private String ocupacion; //La ocupación del usuario
 
-
     //Constructor vacío necesario para MongoDB
     public User() {}
 

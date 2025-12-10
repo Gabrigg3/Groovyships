@@ -20,7 +20,7 @@ export function TopNav() {
                     onClick={() => navigate('/')}
                     className="text-gradient-1 text-2xl lg:text-3xl font-bold font-sans cursor-pointer hover:opacity-80 transition-opacity"
                 >
-                    VibeConnect
+                    Groovyships
                 </button>
 
                 <div className="flex items-center gap-2 lg:gap-4">

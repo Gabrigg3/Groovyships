@@ -4,9 +4,16 @@ import { ActionButtons } from "@/components/ActionButtons";
 import { MatchModal } from "@/components/MatchModal";
 import { matchesApi } from "@/api/matchesApi";
 import type { UserLight } from "@/models/UserLight";
+import { useAuthStore } from "@/store/authStore";
 
 export function SwipeDeck() {
-    const userId = "ID_DEL_USUARIO_LOGUEADO"; // luego vendrá del authStore
+
+    const userId = useAuthStore((s) => s.userId);
+
+    if (!userId) {
+        console.log("NO HAY USERID, esperando a login...");
+        return null;
+    }
 
     const [profiles, setProfiles] = useState<UserLight[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -14,34 +21,45 @@ export function SwipeDeck() {
     const [matchedProfile, setMatchedProfile] = useState<UserLight | null>(null);
     const [filter, setFilter] = useState<"todos" | "romance" | "amistad">("todos");
 
+    // ---------------------------------------
     // Cargar sugerencias al montar
+    // ---------------------------------------
     useEffect(() => {
-        matchesApi.getSuggestions(userId)
+        matchesApi
+            .getSuggestions(userId)
             .then(setProfiles)
             .catch((e) => console.error("Error cargando sugerencias:", e));
     }, [userId]);
 
+    // ---------------------------------------
+    // Aplicar filtro
+    // ---------------------------------------
     const filtered = profiles.filter((p) =>
         filter === "todos" ? true : p.lookingFor?.includes(filter)
     );
 
     const current = filtered[currentIndex];
 
-    const next = () => {
-        if (currentIndex < filtered.length - 1) {
-            setCurrentIndex(currentIndex + 1);
-        } else {
-            setCurrentIndex(0);
-        }
+    // ---------------------------------------
+    // Eliminar perfil actual de la lista
+    // ---------------------------------------
+    const removeCurrentProfile = () => {
+        if (!current) return;
+
+        setProfiles((prev) => prev.filter((p) => p.id !== current.id));
+        setCurrentIndex(0); // evitar desbordes
     };
 
+    // ---------------------------------------
+    // LIKE
+    // ---------------------------------------
     const handleLike = async () => {
         if (!current) return;
 
         try {
             const match = await matchesApi.like(userId, current.id);
 
-            // Es match si el backend devuelve target = current
+            // Es match real
             if (match.target?.id === current.id && match.usuario?.id === userId) {
                 setMatchedProfile(current);
                 setShowMatchModal(true);
@@ -50,9 +68,12 @@ export function SwipeDeck() {
             console.error("Error enviando like:", e);
         }
 
-        next();
+        removeCurrentProfile();
     };
 
+    // ---------------------------------------
+    // DISLIKE
+    // ---------------------------------------
     const handleDislike = async () => {
         if (!current) return;
 
@@ -62,7 +83,7 @@ export function SwipeDeck() {
             console.error("Error enviando dislike:", e);
         }
 
-        next();
+        removeCurrentProfile();
     };
 
     return (
@@ -78,7 +99,10 @@ export function SwipeDeck() {
                     ].map((f) => (
                         <button
                             key={f.key}
-                            onClick={() => setFilter(f.key as any)}
+                            onClick={() => {
+                                setFilter(f.key as any);
+                                setCurrentIndex(0);
+                            }}
                             className={`px-6 py-2 rounded-full font-semibold transition-all ${
                                 filter === f.key
                                     ? "bg-primary text-white shadow-lg scale-105"
@@ -91,7 +115,7 @@ export function SwipeDeck() {
                 </div>
 
                 <div className="flex flex-col items-center gap-6">
-                    {current && (
+                    {current ? (
                         <>
                             <SwipeCard
                                 profile={current}
@@ -105,6 +129,10 @@ export function SwipeDeck() {
                                 onSuperLike={handleLike}
                             />
                         </>
+                    ) : (
+                        <p className="text-muted-foreground text-center mt-12">
+                            No hay más perfiles disponibles 😊
+                        </p>
                     )}
                 </div>
             </div>

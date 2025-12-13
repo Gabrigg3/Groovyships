@@ -1,42 +1,63 @@
 import axios from "axios";
-import { useAuthStore } from "@/store/authStore"; // si aún no existe te lo genero luego
+import { useAuthStore } from "@/store/authStore";
 
+// Axios principal
 export const api = axios.create({
     baseURL: "http://localhost:8080",
-    withCredentials: true, // necesario para cookies HttpOnly
+    withCredentials: true, // necesario para cookie HttpOnly del refresh
 });
 
+/* ----------------------------------------------------
+   1) REQUEST INTERCEPTOR → añade ACCESS TOKEN
+---------------------------------------------------- */
+api.interceptors.request.use((config) => {
+    const token = useAuthStore.getState().accessToken;
+
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+});
+
+/* ----------------------------------------------------
+   2) RESPONSE INTERCEPTOR → si 401 → usar REFRESH TOKEN
+---------------------------------------------------- */
 api.interceptors.response.use(
     (res) => res,
 
     async (error) => {
         const originalRequest = error.config;
 
-        // Caso típico: Access Token expirado
+        // si expiró el accessToken y aún no reintentamos
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
 
             try {
-                // Pedimos un nuevo Access Token usando el Refresh Token (cookie HttpOnly)
+                // pedir nuevo access token
                 const refreshRes = await axios.post(
-                    "http://localhost:8080/api/auth/refresh",
-                    {},
+                    "http://localhost:8080/auth/refresh",
+                    {}, // la cookie HttpOnly ya contiene el refreshToken
                     { withCredentials: true }
                 );
 
-                const newToken = refreshRes.data.accessToken;
+                const newAccess = refreshRes.data.accessToken;
 
-                // Guardamos el nuevo token en localStorage
-                localStorage.setItem("accessToken", newToken);
+                // actualizamos tokens en el store
+                useAuthStore.getState().setAccessToken(
+                    newAccess,
+                    useAuthStore.getState().userId ?? undefined
+                );
 
-                // Lo añadimos a la cabecera de la petición original
-                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                // añadimos nuevo accessToken a la petición original
+                originalRequest.headers.Authorization = `Bearer ${newAccess}`;
 
-                // Reintentamos la petición original
+                // reintentamos
                 return api(originalRequest);
 
             } catch (err) {
-                // Si también falla el refresh → sesión expirada
+                console.error("❌ Error al refrescar token:", err);
+
                 useAuthStore.getState().logout();
                 window.location.href = "/login";
             }

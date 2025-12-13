@@ -14,6 +14,7 @@ interface RegisterFormData {
 
 export function RegisterStep1() {
     const navigate = useNavigate();
+
     const [formData, setFormData] = useState<RegisterFormData>({
         name: '',
         email: '',
@@ -21,6 +22,7 @@ export function RegisterStep1() {
         password: '',
         confirmPassword: '',
     });
+
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     const validateForm = () => {
@@ -56,11 +58,14 @@ export function RegisterStep1() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (validateForm()) {
-            // Guardar datos en localStorage temporalmente
-            localStorage.setItem('registerStep1', JSON.stringify(formData));
-            navigate('/register/step2');
-        }
+
+        if (!validateForm()) return;
+
+        // 1️⃣ Guardamos Step1 para Step2
+        localStorage.setItem("registerStep1", JSON.stringify(formData));
+
+        // 2️⃣ Pasamos a Step2
+        navigate("/register/step2");
     };
 
     return (
@@ -81,11 +86,12 @@ export function RegisterStep1() {
                     </div>
                     <h1 className="text-foreground text-3xl font-bold font-sans mb-2">Crear Cuenta</h1>
                     <p className="text-muted-foreground text-center font-body">
-                        Paso 1 de 2: Información básica
+                        Paso 1 de 4: Información básica
                     </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
+
                     <div>
                         <label htmlFor="name" className="block text-foreground text-sm font-semibold font-body mb-2">
                             Nombre completo

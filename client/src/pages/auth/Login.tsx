@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Heart } from 'lucide-react';
-import { api } from '@/api/axiosConfig';   // ← axios con baseURL y withCredentials
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Heart } from "lucide-react";
+import { authApi } from "@/api/authApi";
+import { useAuthStore } from "@/store/authStore";
 
 interface LoginProps {
     onLogin: () => void;
@@ -11,9 +12,10 @@ interface LoginProps {
 
 export function Login({ onLogin }: LoginProps) {
     const navigate = useNavigate();
+    const setTokens = useAuthStore((state) => state.setAccessToken);
     const [formData, setFormData] = useState({
-        email: '',
-        password: '',
+        email: "",
+        password: "",
     });
 
     const [error, setError] = useState<string | null>(null);
@@ -23,29 +25,20 @@ export function Login({ onLogin }: LoginProps) {
         setError(null);
 
         try {
-            // llamada real al backend
-            const res = await api.post("/auth/login", {
+            // llamada correcta al backend
+            const res = await authApi.login({
                 email: formData.email,
                 password: formData.password,
             });
 
-            // respuesta esperada del backend:
-            // {
-            //   accessToken: "...",
-            //   refreshToken?: "...",
-            //   userId: "12345"
-            // }
+            // respuesta: { accessToken, refreshToken, userId }
+            //setTokens(res.userId, res.accessToken);
+            setTokens(res.accessToken, res.userId);
 
-            const { accessToken, userId } = res.data;
-
-            // guardar access token
-            localStorage.setItem("accessToken", accessToken);
-            localStorage.setItem("userId", userId);
-
-            // avisar al App de que el login fue correcto
+            // si quieres guardar refreshToken fuera del store
+            localStorage.setItem("refreshToken", res.refreshToken);
+            console.log("ACCESS TOKEN:", localStorage.getItem("accessToken"));
             onLogin();
-
-            // redirigir al home
             navigate("/");
         } catch (err) {
             console.error("Error en login:", err);
@@ -67,9 +60,7 @@ export function Login({ onLogin }: LoginProps) {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {error && (
-                        <p className="text-destructive text-center text-sm">{error}</p>
-                    )}
+                    {error && <p className="text-destructive text-center text-sm">{error}</p>}
 
                     <div>
                         <label htmlFor="email" className="block text-foreground text-sm font-semibold font-body mb-2">
@@ -111,9 +102,9 @@ export function Login({ onLogin }: LoginProps) {
 
                 <div className="mt-6 text-center">
                     <p className="text-muted-foreground font-body">
-                        ¿No tienes cuenta?{' '}
+                        ¿No tienes cuenta?{" "}
                         <button
-                            onClick={() => navigate('/register/step1')}
+                            onClick={() => navigate("/register/step1")}
                             className="text-primary font-semibold hover:underline"
                         >
                             Regístrate

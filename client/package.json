@@ -16,6 +16,7 @@
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-toast": "^1.2.15",
+    "@stomp/stompjs": "^7.2.1",
     "axios": "^1.6.7",
     "class-variance-authority": "0.5.2",
     "clsx": "^2.0.0",
@@ -24,6 +25,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",
+    "sockjs-client": "^1.6.1",
     "tailwind-merge": "^3.4.0",
     "zustand": "^5.0.9"
   },
@@ -31,6 +33,7 @@
     "@types/node": "^24.10.2",
     "@types/react": "^18.3.27",
     "@types/react-dom": "^18.3.7",
+    "@types/sockjs-client": "^1.5.4",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.22",
     "postcss": "^8.5.6",

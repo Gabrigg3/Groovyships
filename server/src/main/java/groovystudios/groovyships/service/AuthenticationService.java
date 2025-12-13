@@ -1,14 +1,16 @@
 package groovystudios.groovyships.service;
 
-
 import groovystudios.groovyships.model.RefreshToken;
 import groovystudios.groovyships.model.User;
 import groovystudios.groovyships.repository.RefreshTokenRepository;
 import groovystudios.groovyships.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 
 import java.time.Instant;
 import java.util.Date;
@@ -17,37 +19,48 @@ import java.util.UUID;
 @Service
 public class AuthenticationService {
 
-    private final UserRepository userRepo; //Repositorio para gestionar usuarios
-    private final RefreshTokenRepository refreshRepo; //Repositorio para gestionar tokens de refresco
-    private final PasswordEncoder passwordEncoder; //Para encriptar contraseñas
+    private final UserRepository userRepo;
+    private final RefreshTokenRepository refreshRepo;
+    private final PasswordEncoder passwordEncoder;
 
-    private final String jwtSecret = "GroovySecretJWTKey"; //Clave secreta para firmar JWTs
-    private final long jwtExpirationMs = 1000 * 60 * 15; //15 min - Expiración del JWT
-    private final long refreshExpirationMs = 1000 * 60 * 60 * 24 * 2; //2 días - Expiración del Refresh Token
+    private final String jwtSecret = "GroovyshipsGroovyJsonGroovyWebGroovyTokenGN";
+    private final long jwtExpirationMs = 1000 * 60 * 15; // 15 minutos
+    private final long refreshExpirationMs = 1000 * 60 * 60 * 24 * 2; // 2 días
 
-    //Constructor
+    @Autowired
+    private SequenceGeneratorService sequenceGenerator;
+
     public AuthenticationService(UserRepository userRepo, RefreshTokenRepository refreshRepo, PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
         this.refreshRepo = refreshRepo;
         this.passwordEncoder = passwordEncoder;
     }
 
-    //Función para registrar un nuevo usuario
+    // --------------------------
+    // REGISTRO
+    // --------------------------
     public User register(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword())); //Encripta la contraseña antes de guardarla
-        return userRepo.save(user); //Guarda el usuario en el repositorio
+
+        // Asignar ID secuencial u001, u002…
+        long nextId = sequenceGenerator.getNextSequenceId("userId");
+        String formattedId = String.format("u%03d", nextId);
+        user.setId(formattedId);
+
+        // Encriptar contraseña correctamente
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        return userRepo.save(user);
     }
 
-    //Función para encontrar un usuario por su ID
     public User findUserById(String id) {
-        //Busca el usuario en el repositorio por su ID
         return userRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado")); //Lanza excepción si no se encuentra el usuario
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
 
-    //Función para generar un token de acceso JWT (corto)
+    // --------------------------
+    // GENERAR JWT
+    // --------------------------
     public String generateAccessToken(User user) {
-        //Crea y devuelve un JWT firmado con la información del usuario y la expiración configurada
         return Jwts.builder()
                 .setSubject(user.getId())
                 .setIssuedAt(new Date())
@@ -56,43 +69,73 @@ public class AuthenticationService {
                 .compact();
     }
 
-    //Función para generar un token de refresco (largo)
     public RefreshToken generateRefreshToken(User user) {
-        String token = UUID.randomUUID().toString(); //Genera un token aleatorio único
-        RefreshToken refreshToken = new RefreshToken(token, user.getId(), Instant.now().plusMillis(refreshExpirationMs)); //Crea el objeto RefreshToken con el token, ID de usuario y fecha de expiración
-        return refreshRepo.save(refreshToken); //Guarda y devuelve el token de refresco en el repositorio
+        String token = UUID.randomUUID().toString();
+        RefreshToken refresh = new RefreshToken(
+                token,
+                user.getId(),
+                Instant.now().plusMillis(refreshExpirationMs)
+        );
+        return refreshRepo.save(refresh);
     }
 
-    //Función para iniciar sesión
+    // --------------------------
+    // LOGIN
+    // --------------------------
     public User login(String email, String password) {
-        User user = userRepo.findByEmail(email).orElseThrow(() -> new RuntimeException("Usuario no encontrado")); //Busca el usuario por email y lanza excepción si no lo encuentra
-        //Verifica la contraseña proporcionada con la almacenada
-        System.out.println(user.getEmail());
-        System.out.println(user.getPassword());
-        System.out.println(passwordEncoder.encode(password));
-        System.out.println("*" + password + "*");
 
-        if (!passwordEncoder.matches(password, user.getPassword().trim())) {
+        if (email == null || password == null) {
+            throw new RuntimeException("Email o contraseña inválidos");
+        }
+
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // ❌ NO usar trim() ― rompe bcrypt
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Contraseña incorrecta");
         }
-        return user; //Devuelve el usuario autenticado
+
+        return user;
     }
 
-    //Función para validar y obtener un token de refresco
+    // --------------------------
+    // VALIDAR REFRESH TOKEN
+    // --------------------------
     public RefreshToken refreshToken(String token) {
-        //Busca el token de refresco en el repositorio
+
         RefreshToken refreshToken = refreshRepo.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Refresh token inválido")); //Lanza excepción si no se encuentra
-        //Verifica si el token ha expirado
+                .orElseThrow(() -> new RuntimeException("Refresh token inválido"));
+
         if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
-            refreshRepo.delete(refreshToken); //Elimina el token expirado del repositorio
-            throw new RuntimeException("Refresh token expirado"); //Lanza excepción de token expirado
+            refreshRepo.delete(refreshToken);
+            throw new RuntimeException("Refresh token expirado");
         }
-        return refreshToken; //Devuelve el token de refresco válido
+
+        return refreshToken;
     }
 
-    //Función para cerrar sesión
     public void logout(String userId) {
-        refreshRepo.deleteByUserId(userId); //Elimina todos los tokens de refresco asociados al usuario
+        refreshRepo.deleteByUserId(userId);
     }
+
+
+
+    public User validateAccessToken(String token) {
+
+        // Parsea el JWT y obtiene los claims
+        Claims claims = Jwts.parser()
+                .setSigningKey(jwtSecret)
+                .parseClaimsJws(token)
+                .getBody();
+
+        String userId = claims.getSubject();  // el "sub" del JWT
+
+        if (userId == null) {
+            throw new RuntimeException("Token sin usuario");
+        }
+
+        return findUserById(userId);
+    }
+
 }

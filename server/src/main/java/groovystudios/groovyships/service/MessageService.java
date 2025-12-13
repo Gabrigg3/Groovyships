@@ -1,10 +1,13 @@
 package groovystudios.groovyships.service;
 
-import groovystudios.groovyships.model.Match;
+import groovystudios.groovyships.dto.NotificationEvent;
+import groovystudios.groovyships.dto.MessageEvent;
+import groovystudios.groovyships.dto.MessageResponse;
+import groovystudios.groovyships.model.Conversation;
 import groovystudios.groovyships.model.Message;
-import groovystudios.groovyships.repository.MatchRepository;
+import groovystudios.groovyships.model.MessageType;
+import groovystudios.groovyships.model.User;
 import groovystudios.groovyships.repository.MessageRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,30 +15,87 @@ import java.util.List;
 @Service
 public class MessageService {
 
-    //Repositorio de mensajes -> se usa para guardar y recuperar mensajes desde MongoDB
-    @Autowired
-    private MessageRepository messageRepository;
+    private final MessageRepository messageRepository;
+    private final ConversationService conversationService;
+    private final WebSocketService webSocketService;
 
-    //Repositorio de matches → se usa para comprobar qué usuarios pertenecen al match
-    @Autowired
-    private MatchRepository matchRepository;
-
-    //Enviar un mensaje a un usuario con el que se tiene un match
-    public Message sendMessage(String matchId, String senderId, String content) {
-        Match match = matchRepository.findById(matchId)
-                .orElseThrow(() -> new RuntimeException("Match no encontrado")); //Busca el match por su ID, si no lo encuentra lanza una excepción
-
-        Message message = new Message(); //Crea un nuevo mensaje
-        message.setMatch(match); //Asocia el mensaje al match correspondiente
-        message.setSender(match.getUsuario().getId().equals(senderId) ? match.getUsuario() : match.getUsuario2()); //Establece el remitente del mensaje comprobando si es el usuario 1 o el usuario 2 del match
-        message.setContent(content); //Establece el contenido del mensaje
-
-        return messageRepository.save(message); //Guarda el mensaje en la base de datos y lo devuelve
+    public MessageService(
+            MessageRepository messageRepository,
+            ConversationService conversationService,
+            WebSocketService webSocketService
+    ) {
+        this.messageRepository = messageRepository;
+        this.conversationService = conversationService;
+        this.webSocketService = webSocketService;
     }
 
-    //Obtener todos los mensajes de un match específico
-    public List<Message> getMessages(String matchId) {
-        return messageRepository.findByMatchIdOrderBySentAtAsc(matchId); //Busca y devuelve todos los mensajes asociados al match ordenados por fecha de envío
+    // --------------------------------------------------
+    // ENVIAR MENSAJE + EMITIR WEBSOCKET
+    // --------------------------------------------------
+    public Message sendMessage(
+            String conversationId,
+            String senderId,
+            MessageType type,
+            String content
+    ) {
+        // 🔒 Validar acceso a la conversación
+        Conversation conversation = conversationService.getConversationById(conversationId, senderId);
+
+        // 🛑 Validaciones básicas
+        if (type == null) {
+            throw new RuntimeException("Tipo de mensaje obligatorio");
+        }
+
+        if (content == null || content.isBlank()) {
+            throw new RuntimeException("El contenido no puede estar vacío");
+        }
+
+        // 💾 Guardar mensaje
+        Message message = new Message(
+                conversationId,
+                senderId,
+                type,
+                content
+        );
+
+        Message saved = messageRepository.save(message);
+
+        // 🔁 Emitir mensaje en tiempo real
+        MessageResponse response = MessageResponse.from(saved);
+
+        webSocketService.sendMessageToConversation(
+                conversationId,
+                new MessageEvent(conversationId, response)
+        );
+
+        // 🔔 Notificación al otro usuario
+        String otherUserId = conversation.getUserAId().equals(senderId)
+                ? conversation.getUserBId()
+                : conversation.getUserAId();
+
+        webSocketService.sendNotificationToUser(
+                otherUserId,
+                new NotificationEvent(
+                        "MESSAGE",
+                        "Nuevo mensaje",
+                        "Tienes un nuevo mensaje"
+                )
+        );
+
+        return saved;
+    }
+
+    // --------------------------------------------------
+    // OBTENER MENSAJES (REST)
+    // --------------------------------------------------
+    public List<Message> getMessages(String conversationId, String userId) {
+
+        // 🔒 Validar acceso
+        conversationService.getConversationById(
+                conversationId,
+                userId
+        );
+
+        return messageRepository.findByConversationIdOrderBySentAtAsc(conversationId);
     }
 }
-

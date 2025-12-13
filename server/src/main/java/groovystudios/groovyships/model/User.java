@@ -1,5 +1,6 @@
 package groovystudios.groovyships.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -30,6 +31,10 @@ public class User {
     private List<String> lookingFor;   // ["romance", "amistad"]
     private String ocupacion; //La ocupación del usuario
 
+    private String generoUsuario;
+    private List<String> generosRomance;
+    private List<String> generosAmistad;
+
     //Constructor vacío necesario para MongoDB
     public User() {}
 
@@ -41,8 +46,9 @@ public class User {
     }
 
     //Getters y Setters
+    @JsonProperty("id")
     public String getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(String id) {

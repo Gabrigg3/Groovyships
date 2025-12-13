@@ -7,6 +7,7 @@ import groovystudios.groovyships.service.MatchService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/matches")
@@ -22,8 +23,21 @@ public class MatchController {
 
     //Endpoint para obtener sugerencias de usuarios para hacer match
     @GetMapping("/suggestions/{userId}")
-    public List<User> getSuggestions(@PathVariable String userId) {
-        return matchService.getSuggestions(userId);
+    public List<Map<String, Object>> getSuggestions(@PathVariable String userId) {
+
+        return matchService.getSuggestions(userId).stream()
+                .map(u -> Map.of(
+                        "id", u.getId(),
+                        "nombre", u.getNombre(),
+                        "edad", u.getEdad(),
+                        "ubicacion", u.getUbicacion(),
+                        "biografia", u.getBiografia(),
+                        "intereses", u.getIntereses(),
+                        "imagenes", u.getImagenes(),
+                        "ocupacion", u.getOcupacion(),
+                        "lookingFor", u.getLookingFor() != null ? u.getLookingFor() : List.of()
+                ))
+                .toList();
     }
 
     //Endpoint para indicar que un usuario le gusta a otro

@@ -6,19 +6,27 @@ import { Camera, MapPin, Briefcase } from "lucide-react";
 import type { UserLight } from "@/models/UserLight";
 
 interface ProfileProps {
-    user: UserLight;
+    user: UserLight | undefined;   // aceptar undefined sin romper
 }
 
 export function Profile({ user }: ProfileProps) {
+
+
+    if (!user) {
+        return (
+            <div className="pt-16 text-center text-lg text-muted-foreground">
+                Cargando perfil...
+            </div>
+        );
+    }
+
+
     const [bio, setBio] = useState(user.biografia || "");
     const [isEditingBio, setIsEditingBio] = useState(false);
 
-    const photos = user.imagenes && user.imagenes.length > 0
+    const photos = user.imagenes?.length
         ? user.imagenes
-        : [
-            "https://via.placeholder.com/400",
-            "https://via.placeholder.com/400",
-        ];
+        : ["https://via.placeholder.com/400"];
 
     const interests = user.intereses || [];
 
@@ -37,7 +45,7 @@ export function Profile({ user }: ProfileProps) {
                             <Avatar className="w-32 h-32 lg:w-40 lg:h-40">
                                 <AvatarImage src={photos[0]} alt="Foto de perfil" />
                                 <AvatarFallback className="bg-primary text-primary-foreground text-4xl">
-                                    {user.nombre?.slice(0, 2).toUpperCase() || "US"}
+                                    {user.nombre?.slice(0, 2).toUpperCase() ?? "US"}
                                 </AvatarFallback>
                             </Avatar>
 
@@ -51,21 +59,21 @@ export function Profile({ user }: ProfileProps) {
 
                         <div className="flex-1 text-center md:text-left">
                             <h2 className="text-foreground text-2xl lg:text-3xl font-bold font-sans mb-2">
-                                {user.nombre}, {user.edad || "—"}
+                                {user.nombre}, {user.edad ?? "—"}
                             </h2>
 
                             <div className="flex flex-col md:flex-row items-center gap-4 text-muted-foreground">
                                 {user.ubicacion && (
                                     <div className="flex items-center gap-2">
                                         <MapPin className="w-5 h-5" strokeWidth={1.5} />
-                                        <span className="text-base font-body">{user.ubicacion}</span>
+                                        <span>{user.ubicacion}</span>
                                     </div>
                                 )}
 
                                 {user.ocupacion && (
                                     <div className="flex items-center gap-2">
                                         <Briefcase className="w-5 h-5" strokeWidth={1.5} />
-                                        <span className="text-base font-body">{user.ocupacion}</span>
+                                        <span>{user.ocupacion}</span>
                                     </div>
                                 )}
                             </div>
@@ -73,97 +81,68 @@ export function Profile({ user }: ProfileProps) {
                     </div>
                 </Card>
 
-                {/* Bio Section */}
+                {/* Bio */}
                 <Card className="bg-card text-card-foreground border-border p-6 lg:p-8 mb-6">
-                    <h3 className="text-foreground text-xl font-bold font-sans mb-4">About Me</h3>
+                    <h3 className="text-foreground text-xl font-bold mb-4">About Me</h3>
 
                     {isEditingBio ? (
                         <div>
                             <textarea
                                 value={bio}
                                 onChange={(e) => setBio(e.target.value)}
-                                className="w-full bg-background text-foreground border border-input rounded-lg p-4 text-base font-body min-h-[120px] focus:outline-none focus:ring-2 focus:ring-ring"
+                                className="w-full bg-background border rounded-lg p-4"
                             />
 
                             <div className="flex gap-3 mt-4">
                                 <Button
                                     onClick={() => setIsEditingBio(false)}
-                                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                                    className="bg-primary text-primary-foreground"
                                 >
                                     Save
                                 </Button>
 
-                                <Button
-                                    onClick={() => setIsEditingBio(false)}
-                                    variant="outline"
-                                    className="bg-transparent text-foreground border-border hover:bg-accent hover:text-accent-foreground"
-                                >
+                                <Button onClick={() => setIsEditingBio(false)} variant="outline">
                                     Cancel
                                 </Button>
                             </div>
                         </div>
                     ) : (
                         <div>
-                            <p className="text-foreground text-base font-body leading-relaxed mb-4">
-                                {bio || "No bio provided yet."}
-                            </p>
-
-                            <Button
-                                onClick={() => setIsEditingBio(true)}
-                                variant="outline"
-                                className="bg-transparent text-foreground border-border hover:bg-accent hover:text-accent-foreground"
-                            >
+                            <p>{bio || "No bio provided yet."}</p>
+                            <Button variant="outline" onClick={() => setIsEditingBio(true)}>
                                 Edit Bio
                             </Button>
                         </div>
                     )}
                 </Card>
 
-                {/* Photos Section */}
-                <Card className="bg-card text-card-foreground border-border p-6 lg:p-8 mb-6">
-                    <h3 className="text-foreground text-xl font-bold font-sans mb-4">Photos</h3>
+                {/* Fotos */}
+                <Card className="p-6 lg:p-8 mb-6">
+                    <h3 className="text-xl font-bold mb-4">Photos</h3>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {photos.map((photo, index) => (
-                            <div key={index} className="relative aspect-square rounded-lg overflow-hidden group">
-                                <img
-                                    src={photo}
-                                    alt={`photo-${index}`}
-                                    className="w-full h-full object-cover"
-                                    loading="lazy"
-                                />
-
-                                <div className="absolute inset-0 bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <Button size="icon" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                                        <Camera className="w-5 h-5" strokeWidth={1.5} />
-                                    </Button>
-                                </div>
+                        {photos.map((photo, i) => (
+                            <div key={i} className="relative aspect-square rounded-lg overflow-hidden">
+                                <img src={photo} className="w-full h-full object-cover" />
                             </div>
                         ))}
                     </div>
                 </Card>
 
-                {/* Interests Section */}
-                <Card className="bg-card text-card-foreground border-border p-6 lg:p-8">
-                    <h3 className="text-foreground text-xl font-bold font-sans mb-4">Interests</h3>
+                {/* Interests */}
+                <Card className="p-6 lg:p-8">
+                    <h3 className="text-xl font-bold mb-4">Interests</h3>
 
                     <div className="flex flex-wrap gap-3">
                         {interests.length > 0 ? (
                             interests.map((i, idx) => (
-                                <span key={idx} className="bg-primary/10 text-primary px-4 py-2 rounded-full text-base font-body">
+                                <span key={idx} className="bg-primary/10 text-primary px-4 py-2 rounded-full">
                                     {i}
                                 </span>
                             ))
                         ) : (
-                            <p className="text-muted-foreground">No interests added yet.</p>
+                            <p>No interests added yet.</p>
                         )}
-
-                        <Button
-                            variant="outline"
-                            className="bg-transparent text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full"
-                        >
-                            + Add Interest
-                        </Button>
                     </div>
                 </Card>
             </div>

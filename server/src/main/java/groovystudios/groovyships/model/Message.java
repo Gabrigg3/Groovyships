@@ -1,54 +1,90 @@
 package groovystudios.groovyships.model;
 
 import org.springframework.data.annotation.Id;
-
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
 @Document(collection = "messages")
-    public class Message {
-        @Id
-        private Long id; //ID único generado por MongoDB
+public class Message {
 
-        private Match match; //El match al que pertenece el mensaje
+    @Id
+    private String id;
 
-        private User sender; //El usuario que envía el mensaje
+    private String conversationId;
+    private String senderId;
 
-        private String content; //Contenido del mensaje
+    private MessageType type;
 
-        private LocalDateTime sentAt = LocalDateTime.now(); //Fecha y hora en que se envió el mensaje
+    /**
+     * - TEXT  -> texto
+     * - IMAGE -> URL imagen
+     * - AUDIO -> URL audio
+     * - VIDEO -> URL vídeo
+     */
+    private String content;
 
-        //Getters y setters
-        public Long getId() {
-            return id;
-        }
-        public void setId(Long id) {
-            this.id = id;
-        }
-        public Match getMatch() {
-            return match;
-        }
-        public void setMatch(Match match) {
-            this.match = match;
-        }
-        public User getSender() {
-            return sender;
-        }
-        public void setSender(User sender) {
-            this.sender = sender;
-        }
-        public String getContent() {
-            return content;
-        }
-        public void setContent(String content) {
-            this.content = content;
-        }
-        public LocalDateTime getSentAt() {
-            return sentAt;
-        }
-        public void setSentAt(LocalDateTime sentAt) {
-            this.sentAt = sentAt;
-        }
- }
+    private LocalDateTime sentAt = LocalDateTime.now();
 
+    public Message() {}
+
+    public Message(
+            String conversationId,
+            String senderId,
+            MessageType type,
+            String content
+    ) {
+        this.conversationId = conversationId;
+        this.senderId = senderId;
+        this.type = type;
+        this.content = content;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getConversationId() {
+        return conversationId;
+    }
+
+    public String getSenderId() {
+        return senderId;
+    }
+
+    public MessageType getType() {
+        return type;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public LocalDateTime getSentAt() {
+        return sentAt;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setConversationId(String conversationId) {
+        this.conversationId = conversationId;
+    }
+
+    public void setSenderId(String senderId) {
+        this.senderId = senderId;
+    }
+
+    public void setType(MessageType type) {
+        this.type = type;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public void setSentAt(LocalDateTime sentAt) {
+        this.sentAt = sentAt;
+    }
+}

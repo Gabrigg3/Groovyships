@@ -8,7 +8,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.List;
 import java.util.Optional;
 
-@Document(collection = "matches") //TODO: revisar ("@Document solo debe ir en la clase Match, no aquí.")
 public interface MatchRepository extends MongoRepository<Match, String> {
 
     //Buscar todos los matches donde el usuario es usuario1 o usuario2

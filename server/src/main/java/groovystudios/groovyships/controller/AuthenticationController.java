@@ -23,9 +23,21 @@ public class AuthenticationController {
         this.authService = authService;
     }
 
+
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody User user) {
-        return ResponseEntity.ok(authService.register(user));
+    public ResponseEntity<Map<String, String>> register(@RequestBody User user) {
+
+        User saved =
+        authService.register(user);
+        String accessToken = authService.generateAccessToken(saved);
+        RefreshToken refreshToken = authService.generateRefreshToken(saved);
+
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("accessToken", accessToken);
+        tokens.put("refreshToken", refreshToken.getToken());
+        tokens.put("userId", saved.getId());
+
+        return ResponseEntity.ok(tokens);
     }
 
     @PostMapping("/login")
@@ -41,7 +53,7 @@ public class AuthenticationController {
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken.getToken())
                 .httpOnly(true)
-                .secure(false) // PONLO EN TRUE SI USAS HTTPS
+                .secure(false) // TRUE SI USAS HTTPS
                 .path("/auth/refresh")
                 .maxAge(7 * 24 * 60 * 60)
                 .sameSite("Lax")
@@ -49,23 +61,24 @@ public class AuthenticationController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(Map.of("accessToken", accessToken));
+                .body(Map.of(
+                        "accessToken", accessToken,
+                        "userId", logged.getId()
+                ));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<Map<String, String>> refresh(@RequestBody Map<String, String> body) {
-
-        String token = body.get("refreshToken");
-
-        RefreshToken stored = authService.refreshToken(token);
+    public ResponseEntity<Map<String, String>> refresh(
+            @CookieValue("refreshToken") String refreshToken
+    ) {
+        RefreshToken stored = authService.refreshToken(refreshToken);
         User user = authService.findUserById(stored.getUserId());
 
         String newAccess = authService.generateAccessToken(user);
 
         return ResponseEntity.ok(
                 Map.of(
-                        "accessToken", newAccess,
-                        "refreshToken", stored.getToken()
+                        "accessToken", newAccess
                 )
         );
     }

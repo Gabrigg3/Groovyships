@@ -1,43 +1,35 @@
+// src/api/notificationApi.ts
 import { api } from "@/api/axiosConfig";
 import type { Notification } from "@/models/Notification";
 
-const API_URL = "http://localhost:8080/api/notifications";
-
 export const notificationsApi = {
-
-    //Obtener TODAS las notificaciones del usuario
-    async getAll(userId: string): Promise<Notification[]> {
+    // TODAS
+    async getAll(): Promise<Notification[]> {
         const res = await api.get<Notification[]>(
-            `${API_URL}/${userId}`,
-            { withCredentials: true }
+            "/api/notifications"
         );
         return res.data;
     },
 
-    //Obtener SOLO las no leídas (para polling)
-    async getUnread(userId: string): Promise<Notification[]> {
+    // SOLO NO LEÍDAS
+    async getUnread(): Promise<Notification[]> {
         const res = await api.get<Notification[]>(
-            `${API_URL}/${userId}/unread`,
-            { withCredentials: true }
+            "/api/notifications/unread"
         );
         return res.data;
     },
 
-    //Marcar UNA notificación como leída
+    // MARCAR UNA
     async markAsRead(notificationId: string): Promise<void> {
         await api.post(
-            `${API_URL}/${notificationId}/read`,
-            {},
-            { withCredentials: true }
+            `/api/notifications/${notificationId}/read`
         );
     },
 
-    //Marcar TODAS como leídas (opcional)
-    async markAllAsRead(userId: string): Promise<void> {
+    // MARCAR TODAS
+    async markAllAsRead(): Promise<void> {
         await api.post(
-            `${API_URL}/${userId}/read-all`,
-            {},
-            { withCredentials: true }
+            "/api/notifications/read-all"
         );
     },
 };

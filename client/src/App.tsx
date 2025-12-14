@@ -20,12 +20,32 @@ import { RegisterStep4 } from "./pages/auth/RegisterStep4";
 import { AppLayout } from "./components/AppLayout";
 
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
+import {Notifications} from "@/pages/Notifications";
+import {useNotificationStore} from "@/store/notificationStore";
+import {MatchModal} from "@/components/MatchModal";
 
 function ProtectedLayout() {
+    // 🔌 WebSocket de notificaciones (una sola vez)
     useNotificationSocket();
+
+    // 💖 Match modal desde el store de notificaciones
+    const {
+        showMatchModal,
+        matchedProfile,
+        closeMatchModal,
+    } = useNotificationStore();
+
     return (
         <AppLayout>
             <Outlet />
+
+            {/* MATCH MODAL GLOBAL (tipo Tinder) */}
+            {showMatchModal && matchedProfile && (
+                <MatchModal
+                    profile={matchedProfile}
+                    onClose={closeMatchModal}
+                />
+            )}
         </AppLayout>
     );
 }
@@ -57,6 +77,7 @@ export default function App() {
                         <Route path="/matches" element={<Matches />} />
                         <Route path="/messages" element={<Messages />} />
                         <Route path="/messages/:chatId" element={<ChatWindow />} />
+                        <Route path="/notifications" element={<Notifications />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Route>

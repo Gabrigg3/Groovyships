@@ -1,20 +1,14 @@
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-    Heart,
-    MessageCircle,
-    Star,
-    UserPlus,
-    Clock,
-} from "lucide-react";
+import { Heart, MessageCircle, Star, UserPlus, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useNotificationStore } from "@/store/notificationStore";
-import { Notification } from "@/models/Notification";
+import type { Notification } from "@/models/Notification";
 
 /* ---------------------------------------
-   HELPERS UI
+   UI HELPERS (MISMA ESTÉTICA)
 --------------------------------------- */
 function getNotificationIcon(type: Notification["type"]) {
     switch (type) {
@@ -56,6 +50,8 @@ function getNotificationBgColor(type: Notification["type"]) {
             return "bg-primary/10";
         case "MESSAGE":
             return "bg-tertiary/10";
+        case "LIKE":
+            return "bg-secondary/10";
         default:
             return "bg-muted";
     }
@@ -67,26 +63,14 @@ function getNotificationBgColor(type: Notification["type"]) {
 export function Notifications() {
     const navigate = useNavigate();
 
-    const notifications = useNotificationStore(
-        (s) => s.notifications
-    );
-    const unreadCount = useNotificationStore(
-        (s) => s.unreadCount()
-    );
-    const markAsRead = useNotificationStore(
-        (s) => s.markAsRead
-    );
+    const notifications = useNotificationStore((s) => s.notifications);
+    const unreadCount = useNotificationStore((s) => s.unreadCount);
+    const markAsRead = useNotificationStore((s) => s.markAsRead);
 
-    const handleClick = (n: Notification) => {
+    const handleNotificationClick = (n: Notification) => {
         markAsRead(n.id);
 
-        // MATCH → ir a conversaciones
-        if (n.type === "MATCH") {
-            navigate("/messages");
-        }
-
-        // MESSAGE → ir a chat (si luego metes conversationId en payload)
-        if (n.type === "MESSAGE") {
+        if (n.type === "MATCH" || n.type === "MESSAGE") {
             navigate("/messages");
         }
     };
@@ -115,12 +99,12 @@ export function Notifications() {
                         return (
                             <Card
                                 key={n.id}
-                                onClick={() => handleClick(n)}
-                                className={`bg-card text-card-foreground border-border p-4 lg:p-6 transition-all duration-200 cursor-pointer ${
-                                    !n.read
-                                        ? "border-l-4 border-l-primary"
+                                onClick={() => handleNotificationClick(n)}
+                                className={`bg-card text-card-foreground border-border p-4 lg:p-6 transition-all duration-200 ${
+                                    n.type === "MATCH" || n.type === "MESSAGE"
+                                        ? "cursor-pointer hover:border-primary"
                                         : ""
-                                }`}
+                                } ${!n.read ? "border-l-4 border-l-primary" : ""}`}
                             >
                                 <div className="flex items-start gap-4">
                                     {/* ICON */}
@@ -135,10 +119,8 @@ export function Notifications() {
                                     {/* AVATAR */}
                                     <Avatar className="w-14 h-14 lg:w-16 lg:h-16 flex-shrink-0">
                                         <AvatarImage
-                                            src={
-                                                profile?.imagenes?.[0] ??
-                                                ""
-                                            }
+                                            src={profile?.imagenes?.[0] ?? ""}
+                                            alt={profile?.nombre ?? ""}
                                         />
                                         <AvatarFallback className="bg-primary text-primary-foreground text-lg">
                                             {profile?.nombre?.[0] ?? "?"}
@@ -147,41 +129,46 @@ export function Notifications() {
 
                                     {/* CONTENT */}
                                     <div className="flex-1 min-w-0">
-                                        <p
-                                            className={`text-base lg:text-lg font-body ${
-                                                !n.read
-                                                    ? "text-foreground font-semibold"
-                                                    : "text-muted-foreground"
-                                            }`}
-                                        >
-                                            {n.type === "MATCH" &&
-                                                `Has hecho match con ${profile?.nombre}`}
-                                            {n.type === "MESSAGE" &&
-                                                "Nuevo mensaje recibido"}
-                                            {n.type === "LIKE" &&
-                                                `${profile?.nombre} le dio like a tu perfil`}
-                                        </p>
+                                        <div className="flex items-start justify-between gap-2 mb-1">
+                                            <p
+                                                className={`text-base lg:text-lg font-body ${
+                                                    !n.read
+                                                        ? "text-foreground font-semibold"
+                                                        : "text-muted-foreground"
+                                                }`}
+                                            >
+                                                {n.type === "MATCH" &&
+                                                    `Has hecho match con ${profile?.nombre}`}
+                                                {n.type === "MESSAGE" &&
+                                                    "Has recibido un nuevo mensaje"}
+                                                {n.type === "LIKE" &&
+                                                    `${profile?.nombre} le dio like a tu perfil`}
+                                            </p>
 
-                                        <div className="flex items-center gap-2 text-muted-foreground text-sm font-body mt-1">
-                                            <Clock
-                                                className="w-4 h-4"
-                                                strokeWidth={1.5}
-                                            />
+                                            {!n.read && (
+                                                <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2" />
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center gap-2 text-muted-foreground text-sm font-body">
+                                            <Clock className="w-4 h-4" strokeWidth={1.5} />
                                             <span>
-                                                {new Date(
-                                                    n.createdAt
-                                                ).toLocaleString()}
+                                                {new Date(n.createdAt).toLocaleString()}
                                             </span>
                                         </div>
 
-                                        {/* ACTION */}
+                                        {/* ACTION BUTTON */}
                                         {(n.type === "MATCH" ||
                                             n.type === "MESSAGE") && (
                                             <Button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigate("/messages");
+                                                }}
                                                 className="mt-3 bg-primary text-primary-foreground hover:bg-primary/90"
                                                 size="sm"
                                             >
-                                                Ver conversación
+                                                Ver mensaje
                                             </Button>
                                         )}
                                     </div>
@@ -205,7 +192,7 @@ export function Notifications() {
                                 No hay notificaciones
                             </h3>
                             <p className="text-muted-foreground font-body">
-                                Cuando alguien haga match contigo o te escriba,
+                                Cuando alguien te dé like o te envíe un mensaje,
                                 aparecerá aquí
                             </p>
                         </div>

@@ -107,7 +107,7 @@ export function RegisterStep4({ onComplete }: RegisterStep4Props) {
             ocupacion: step2.occupation,
             ubicacion: step2.location,
             biografia: step2.bio,
-            genero: step2.gender,
+            generoUsuario: step2.gender,
 
             imagenes: step2.photo ? [step2.photo] : [],
             intereses: step3.interests,

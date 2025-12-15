@@ -3,15 +3,36 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import type { UserLight } from "@/models/UserLight";
+import { useAuthStore } from "@/store/authStore";
+import { usersApi } from "@/api/userApi";
 
 interface MatchModalProps {
-    profile: UserLight;
+    profile: UserLight; // usuario con el que hiciste match
     onClose: () => void;
 }
 
 export function MatchModal({ profile, onClose }: MatchModalProps) {
     const navigate = useNavigate();
+    const userId = useAuthStore((s) => s.userId);
+
+    // 👤 PERFIL DEL USUARIO LOGUEADO
+    const [loggedUser, setLoggedUser] = useState<UserLight | null>(null);
+
+    // --------------------------------------------------
+    // CARGAR PERFIL DEL USUARIO LOGUEADO
+    // --------------------------------------------------
+    useEffect(() => {
+        if (!userId) return;
+
+        usersApi
+            .getById(userId)
+            .then(setLoggedUser)
+            .catch((err) => {
+                console.error("Error cargando usuario logueado:", err);
+            });
+    }, [userId]);
 
     const handleStartChat = () => {
         onClose();
@@ -54,7 +75,7 @@ export function MatchModal({ profile, onClose }: MatchModalProps) {
                         {profile.lookingFor?.map((type) => {
                             const badgeInfo = {
                                 romance: { emoji: "💕", label: "Romance" },
-                                amistad: { emoji: "🤝", label: "Amistad" }
+                                amistad: { emoji: "🤝", label: "Amistad" },
                             }[type];
 
                             if (!badgeInfo) return null;
@@ -72,7 +93,7 @@ export function MatchModal({ profile, onClose }: MatchModalProps) {
 
                     {/* Fotos del match */}
                     <div className="flex items-center justify-center gap-6 mb-8 lg:mb-10">
-                        {/* Foto del usuario logueado (placeholder por ahora) */}
+                        {/* FOTO DEL USUARIO LOGUEADO */}
                         <motion.div
                             initial={{ x: -50, opacity: 0 }}
                             animate={{ x: 0, opacity: 1 }}
@@ -80,13 +101,13 @@ export function MatchModal({ profile, onClose }: MatchModalProps) {
                             className="w-24 h-24 lg:w-32 lg:h-32 rounded-full overflow-hidden border-4 border-white"
                         >
                             <img
-                                src="https://c.animaapp.com/miuehdn2n7lalI/img/ai_1.png"
-                                alt="your profile"
+                                src={loggedUser?.imagenes?.[0] ?? "/placeholder.png"}
+                                alt="Tu perfil"
                                 className="w-full h-full object-cover"
                             />
                         </motion.div>
 
-                        {/* Foto de la persona con la que hiciste match */}
+                        {/* FOTO DEL MATCH */}
                         <motion.div
                             initial={{ x: 50, opacity: 0 }}
                             animate={{ x: 0, opacity: 1 }}

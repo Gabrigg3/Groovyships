@@ -194,9 +194,9 @@ export function RegisterStep2() {
                         </label>
                         <div className="grid grid-cols-3 gap-3">
                             {[
-                                { value: 'male', label: '👨 Hombre' },
-                                { value: 'female', label: '👩 Mujer' },
-                                { value: 'other', label: '🌈 Otro' },
+                                { value: 'hombre', label: '👨 Hombre' },
+                                { value: 'mujer', label: '👩 Mujer' },
+                                { value: 'otro', label: '🌈 Otro' },
                             ].map((option) => (
                                 <button
                                     key={option.value}

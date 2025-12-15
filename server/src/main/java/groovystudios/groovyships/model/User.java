@@ -36,13 +36,15 @@ public class User {
     private List<String> generosAmistad;
 
     //Constructor vacío necesario para MongoDB
-    public User() {}
+    public User() {
+    }
 
     //Constructor completo
-    public User(String nombre, String email, String password) {
+    public User(String nombre, String email, String password, String generoUsuario) {
         this.nombre = nombre;
         this.email = email;
         this.password = password;
+        this.generoUsuario = generoUsuario;
     }
 
     //Getters y Setters
@@ -150,4 +152,29 @@ public class User {
     public void setOcupacion(String ocupacion) {
         this.ocupacion = ocupacion;
     }
+
+    public String getGeneroUsuario() {
+        return generoUsuario;
+    }
+
+    public void setGeneroUsuario(String generoUsuario) {
+        this.generoUsuario = generoUsuario;
+    }
+
+    public List<String> getGenerosRomance() {
+        return generosRomance;
+    }
+
+    public void setGenerosRomance(List<String> generosRomance) {
+        this.generosRomance = generosRomance;
+    }
+
+    public List<String> getGenerosAmistad() {
+        return generosAmistad;
+    }
+
+    public void setGenerosAmistad(List<String> generosAmistad) {
+        this.generosAmistad = generosAmistad;
+    }
+
 }

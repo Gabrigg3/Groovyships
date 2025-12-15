@@ -38,7 +38,15 @@ export function Messages() {
                     {conversations.map((chat) => (
                         <Card
                             key={chat.conversationId}
-                            onClick={() => navigate(`/messages/${chat.conversationId}`)}
+                            onClick={() =>
+                                navigate(`/messages/${chat.conversationId}`, {
+                                    state: {
+                                        otherUserId: chat.otherUserId,
+                                        otherUserName: chat.otherUserName,
+                                        otherUserImage: chat.otherUserImage,
+                                    },
+                                })
+                            }
                         >
                             <Avatar>
                                 <AvatarImage src={chat.otherUserImage ?? ""} />

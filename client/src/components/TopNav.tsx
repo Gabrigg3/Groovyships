@@ -7,15 +7,39 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
+import { useNotificationStore } from '@/store/notificationStore';
+import { useEffect, useState } from 'react';
+import type { UserLight } from '@/models/UserLight';
+import { usersApi } from '@/api/userApi';
 
 export function TopNav() {
     const navigate = useNavigate();
-    const location = useLocation();
+    const userId = useAuthStore((s) => s.userId);
+    const unreadCount = useNotificationStore((s) => s.unreadCount);
+
+    const [user, setUser] = useState<UserLight | null>(null);
+
+    // --------------------------------------------------
+    // CARGAR USUARIO LOGUEADO
+    // --------------------------------------------------
+    useEffect(() => {
+        if (!userId) return;
+
+        usersApi
+            .getById(userId)
+            .then(setUser)
+            .catch((err) => {
+                console.error('Error cargando usuario:', err);
+            });
+    }, [userId]);
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border h-16 lg:h-20">
             <div className="container mx-auto h-full px-4 lg:px-8 flex items-center justify-between">
+
+                {/* LOGO */}
                 <button
                     onClick={() => navigate('/')}
                     className="text-gradient-1 text-2xl lg:text-3xl font-bold font-sans cursor-pointer hover:opacity-80 transition-opacity"
@@ -23,51 +47,81 @@ export function TopNav() {
                     Groovyships
                 </button>
 
+                {/* ACTIONS */}
                 <div className="flex items-center gap-2 lg:gap-4">
+
+                    {/* NOTIFICATIONS */}
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground"
-                        onClick={() => navigate('/messages')}
+                        className="relative"
+                        onClick={() => navigate('/notifications')}
                     >
                         <Bell className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={1.5} />
+
+                        {unreadCount > 0 && (
+                            <span
+                                className="
+                                    absolute -top-1 -right-1
+                                    min-w-[18px] h-[18px]
+                                    bg-primary text-primary-foreground
+                                    text-xs font-bold
+                                    rounded-full
+                                    flex items-center justify-center
+                                    px-1
+                                "
+                            >
+                                {unreadCount}
+                            </span>
+                        )}
                     </Button>
 
+                    {/* MESSAGES */}
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground"
                         onClick={() => navigate('/messages')}
                     >
                         <MessageCircle className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={1.5} />
                     </Button>
 
+                    {/* USER MENU */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground rounded-full"
+                                className="rounded-full"
                             >
                                 <Avatar className="w-10 h-10 lg:w-12 lg:h-12">
-                                    <AvatarImage src="https://c.animaapp.com/miuehdn2n7lalI/img/ai_1.png" alt="portrait user" />
-                                    <AvatarFallback className="bg-primary text-primary-foreground">ME</AvatarFallback>
+                                    <AvatarImage
+                                        src={user?.imagenes?.[0]}
+                                        alt={user?.nombre ?? 'Usuario'}
+                                    />
+                                    <AvatarFallback className="bg-primary text-primary-foreground">
+                                        {user?.nombre?.charAt(0) ?? 'U'}
+                                    </AvatarFallback>
                                 </Avatar>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-popover text-popover-foreground">
-                            <DropdownMenuItem
-                                onClick={() => navigate('/profile')}
-                                className="cursor-pointer text-popover-foreground hover:bg-accent hover:text-accent-foreground"
-                            >
-                                <User className="mr-2 w-4 h-4" strokeWidth={1.5} />
-                                Profile Settings
+
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => navigate('/profile')}>
+                                <User className="mr-2 w-4 h-4" />
+                                Perfil
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer text-popover-foreground hover:bg-accent hover:text-accent-foreground">
-                                Logout
+
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    useAuthStore.getState().logout();
+                                    navigate('/login');
+                                }}
+                            >
+                                Cerrar sesión
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
+
                 </div>
             </div>
         </nav>

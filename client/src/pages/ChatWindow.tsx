@@ -1,25 +1,28 @@
-import { useState, useRef, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
     ArrowLeft,
     Send,
     Mic,
     Image,
     Video,
+    Music,
     X,
     Play,
 } from "lucide-react";
 
-import { useAuthStore } from "@/store/authStore";
+import { uploadMedia } from "@/api/mediaApi";
 import { messagesApi } from "@/api/messagesApi";
-import { MessageResponse } from "@/models/MessageResponse";
 import { useChatSocket } from "@/hooks/useChatSocket";
+import { useAuthStore } from "@/store/authStore";
+import type { MessageResponse } from "@/models/MessageResponse";
+import type { UserLight } from "@/models/UserLight";
 
 /* ---------------------------------------
-   TIPOS FRONTEND DEL MENSAJE
+   TIPOS
 --------------------------------------- */
 type UIMessage = {
     id: string;
@@ -28,37 +31,68 @@ type UIMessage = {
     type: "text" | "image" | "video" | "audio";
     text?: string;
     mediaUrl?: string;
-    duration?: number;
 };
 
+/* ---------------------------------------
+   COMPONENTE
+--------------------------------------- */
 export function ChatWindow() {
-    const { chatId: conversationId } = useParams();
+    const { chatId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const { userId } = useAuthStore();
 
+    /* ---------------------------------------
+       PERFIL DEL OTRO USUARIO
+    --------------------------------------- */
+    const { otherUserId, otherUserName, otherUserImage } =
+    (location.state as {
+        otherUserId: string;
+        otherUserName: string;
+        otherUserImage?: string;
+    }) || {};
+
+    const [chatProfile, setChatProfile] = useState<UserLight | null>(null);
+
+    useEffect(() => {
+        if (!otherUserId) return;
+        setChatProfile({
+            id: otherUserId,
+            nombre: otherUserName,
+            imagenes: otherUserImage ? [otherUserImage] : [],
+        });
+    }, [otherUserId, otherUserName, otherUserImage]);
+
+    /* ---------------------------------------
+       ESTADO
+    --------------------------------------- */
     const [messages, setMessages] = useState<UIMessage[]>([]);
     const [inputValue, setInputValue] = useState("");
-    const [isRecording, setIsRecording] = useState(false);
-    const [recordingTime, setRecordingTime] = useState(0);
     const [showMediaOptions, setShowMediaOptions] = useState(false);
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    /* ---------------------------------------
+       REFS FILE INPUTS
+    --------------------------------------- */
+    const imageInputRef = useRef<HTMLInputElement>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
+    const audioFileInputRef = useRef<HTMLInputElement>(null);
+
+    /* ---------------------------------------
+       AUDIO RECORDING
+    --------------------------------------- */
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
     const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    /* ---------------------------------------
-       PERFIL (luego vendrá del backend)
-    --------------------------------------- */
-    const profile = {
-        name: "Chat",
-        image: "",
-        imageAlt: "",
-        lookingFor: ["romance"],
-    };
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingTime, setRecordingTime] = useState(0);
 
     /* ---------------------------------------
-       MAPEO BACK → FRONT
+       HELPERS
     --------------------------------------- */
+    const formatTime = (seconds: number) =>
+        `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+
     const mapMessage = (msg: MessageResponse): UIMessage => ({
         id: msg.id,
         sender: msg.senderId === userId ? "me" : "other",
@@ -72,89 +106,85 @@ export function ChatWindow() {
     });
 
     /* ---------------------------------------
-       CARGA INICIAL DE MENSAJES
+       CARGA INICIAL + WS
     --------------------------------------- */
     useEffect(() => {
-        if (!conversationId) return;
-
-        messagesApi.getMessages(conversationId).then((data) => {
+        if (!chatId) return;
+        messagesApi.getMessages(chatId).then((data) => {
             setMessages(data.map(mapMessage));
         });
-    }, [conversationId]);
+    }, [chatId]);
 
-    /* ---------------------------------------
-       WEBSOCKET TIEMPO REAL
-    --------------------------------------- */
-    useChatSocket(conversationId, (msg) => {
+    useChatSocket(chatId, (msg) => {
         setMessages((prev) => [...prev, mapMessage(msg)]);
     });
 
     /* ---------------------------------------
-       HELPERS UI
+       ENVÍO TEXTO
     --------------------------------------- */
-    const getAvatarBorderClass = () => {
-        if (
-            profile.lookingFor.includes("romance") &&
-            profile.lookingFor.includes("friendship")
-        ) {
-            return "ring-4 ring-gradient-both";
-        } else if (profile.lookingFor.includes("romance")) {
-            return "ring-4 ring-primary";
-        } else if (profile.lookingFor.includes("friendship")) {
-            return "ring-4 ring-friendship";
-        }
-        return "";
-    };
-
-    /* ---------------------------------------
-       ENVÍO DE MENSAJE TEXTO
-    --------------------------------------- */
-    const handleSend = async () => {
-        if (!inputValue.trim() || !conversationId) return;
-
-        await messagesApi.sendMessage(conversationId, "TEXT", inputValue);
+    const handleSendText = async () => {
+        if (!inputValue.trim() || !chatId) return;
+        await messagesApi.sendMessage(chatId, "TEXT", inputValue);
         setInputValue("");
     };
 
     /* ---------------------------------------
-       AUDIO (solo UI por ahora)
+       ENVÍO ARCHIVOS
     --------------------------------------- */
-    const startRecording = () => {
+    const handleFileUpload = async (
+        file: File,
+        type: "image" | "video" | "audio"
+    ) => {
+        if (!chatId) return;
+        const url = await uploadMedia(file, type);
+        await messagesApi.sendMessage(
+            chatId,
+            type.toUpperCase() as "IMAGE" | "VIDEO" | "AUDIO",
+            url
+        );
+        setShowMediaOptions(false);
+    };
+
+    /* ---------------------------------------
+       AUDIO GRABADO
+    --------------------------------------- */
+    const startRecording = async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream);
+
+        audioChunksRef.current = [];
+        recorder.ondataavailable = (e) => audioChunksRef.current.push(e.data);
+        recorder.start();
+
+        mediaRecorderRef.current = recorder;
         setIsRecording(true);
         setRecordingTime(0);
+
         recordingIntervalRef.current = setInterval(() => {
-            setRecordingTime((prev) => prev + 1);
+            setRecordingTime((t) => t + 1);
         }, 1000);
     };
 
     const stopRecording = () => {
-        setIsRecording(false);
         recordingIntervalRef.current &&
         clearInterval(recordingIntervalRef.current);
-        setRecordingTime(0);
+
+        setIsRecording(false);
+
+        mediaRecorderRef.current?.stop();
+        mediaRecorderRef.current!.onstop = async () => {
+            const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+            const file = new File([blob], "audio.webm", { type: "audio/webm" });
+            await handleFileUpload(file, "audio");
+        };
     };
 
     const cancelRecording = () => {
-        setIsRecording(false);
         recordingIntervalRef.current &&
         clearInterval(recordingIntervalRef.current);
+        mediaRecorderRef.current?.stop();
+        setIsRecording(false);
         setRecordingTime(0);
-    };
-
-    /* ---------------------------------------
-       MEDIA (placeholder)
-    --------------------------------------- */
-    const handleImageUpload = () => setShowMediaOptions(false);
-    const handleVideoUpload = () => setShowMediaOptions(false);
-
-    const formatTime = (seconds: number) =>
-        `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
-        }
     };
 
     /* ---------------------------------------
@@ -165,80 +195,47 @@ export function ChatWindow() {
             {/* HEADER */}
             <div className="bg-card border-b px-4 lg:px-8 py-4">
                 <div className="container mx-auto max-w-4xl flex items-center gap-4">
-                    <Button type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => navigate("/messages")}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => navigate("/messages")}>
                         <ArrowLeft className="w-6 h-6" />
                     </Button>
 
-                    <Avatar className={`w-12 h-12 ${getAvatarBorderClass()}`}>
-                        <AvatarImage src={profile.image} />
-                        <AvatarFallback>{profile.name[0]}</AvatarFallback>
+                    <Avatar className="w-12 h-12">
+                        <AvatarImage src={chatProfile?.imagenes?.[0]} />
+                        <AvatarFallback>
+                            {chatProfile?.nombre?.[0] ?? "?"}
+                        </AvatarFallback>
                     </Avatar>
 
-                    <h2 className="text-xl font-bold">{profile.name}</h2>
+                    <h2 className="text-xl font-bold">
+                        {chatProfile?.nombre ?? "Cargando..."}
+                    </h2>
                 </div>
             </div>
 
             {/* MENSAJES */}
             <div className="flex-1 overflow-y-auto px-4 lg:px-8 py-6">
                 <div className="container mx-auto max-w-4xl space-y-4">
-                    {messages.map((message) => (
+                    {messages.map((m) => (
                         <div
-                            key={message.id}
-                            className={`flex ${
-                                message.sender === "me"
-                                    ? "justify-end"
-                                    : "justify-start"
-                            }`}
+                            key={m.id}
+                            className={`flex ${m.sender === "me" ? "justify-end" : "justify-start"}`}
                         >
-                            <div className="max-w-[75%]">
-                                <Card
-                                    className={`${
-                                        message.sender === "me"
-                                            ? "bg-primary text-primary-foreground"
-                                            : "bg-card"
-                                    } ${
-                                        message.type === "text"
-                                            ? "p-4"
-                                            : "p-2"
-                                    }`}
-                                >
-                                    {message.type === "text" && (
-                                        <p>{message.text}</p>
-                                    )}
-
-                                    {message.type === "audio" && (
-                                        <div className="flex items-center gap-3">
-                                            <Play className="w-4 h-4" />
-                                            <span>
-                                                {formatTime(
-                                                    message.duration || 0
-                                                )}
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {message.type === "image" && (
-                                        <img
-                                            src={message.mediaUrl}
-                                            className="rounded-lg"
-                                        />
-                                    )}
-
-                                    {message.type === "video" && (
-                                        <video
-                                            src={message.mediaUrl}
-                                            controls
-                                        />
-                                    )}
-                                </Card>
+                            <Card className="max-w-[75%] p-3">
+                                {m.type === "text" && <p>{m.text}</p>}
+                                {m.type === "image" && <img src={m.mediaUrl} className="rounded-lg" />}
+                                {m.type === "video" && (
+                                    <video src={m.mediaUrl} controls className="rounded-lg" />
+                                )}
+                                {m.type === "audio" && (
+                                    <div className="flex items-center gap-2">
+                                        <Play className="w-4 h-4" />
+                                        <audio src={m.mediaUrl} controls />
+                                    </div>
+                                )}
                                 <p className="text-xs text-muted-foreground mt-1">
-                                    {message.timestamp}
+                                    {m.timestamp}
                                 </p>
-                            </div>
+                            </Card>
                         </div>
                     ))}
                 </div>
@@ -249,52 +246,83 @@ export function ChatWindow() {
                 <div className="container mx-auto max-w-4xl">
                     {isRecording ? (
                         <div className="flex items-center gap-3 p-4 bg-destructive/10 rounded-lg">
-                            <span>
-                                Grabando... {formatTime(recordingTime)}
-                            </span>
-                            <Button type="button"
-                                variant="ghost"
-                                size="icon"
-                                onKeyDown={cancelRecording}
-                            >
+                            <span>Grabando… {formatTime(recordingTime)}</span>
+                            <Button variant="ghost" size="icon" onClick={cancelRecording}>
                                 <X />
                             </Button>
-                            <Button type="button" size="icon" onKeyDown={stopRecording}>
+                            <Button size="icon" onClick={stopRecording}>
                                 <Send />
                             </Button>
                         </div>
                     ) : (
                         <div className="flex items-center gap-3">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() =>
-                                    setShowMediaOptions(!showMediaOptions)
-                                }
-                            >
-                                <Image />
-                            </Button>
+                            {/* MEDIA MENU */}
+                            <div className="relative">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setShowMediaOptions(!showMediaOptions)}
+                                >
+                                    <Image />
+                                </Button>
 
+                                {showMediaOptions && (
+                                    <div className="absolute bottom-full mb-2 bg-card border rounded-lg p-2 space-y-2">
+                                        <Button onClick={() => imageInputRef.current?.click()} variant="ghost">
+                                            <Image className="mr-2" /> Foto
+                                        </Button>
+                                        <Button onClick={() => videoInputRef.current?.click()} variant="ghost">
+                                            <Video className="mr-2" /> Vídeo
+                                        </Button>
+                                        <Button onClick={() => audioFileInputRef.current?.click()} variant="ghost">
+                                            <Music className="mr-2" /> Audio
+                                        </Button>
+                                    </div>
+                                )}
+
+                                <input
+                                    ref={imageInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    hidden
+                                    onChange={(e) =>
+                                        e.target.files && handleFileUpload(e.target.files[0], "image")
+                                    }
+                                />
+                                <input
+                                    ref={videoInputRef}
+                                    type="file"
+                                    accept="video/*"
+                                    hidden
+                                    onChange={(e) =>
+                                        e.target.files && handleFileUpload(e.target.files[0], "video")
+                                    }
+                                />
+                                <input
+                                    ref={audioFileInputRef}
+                                    type="file"
+                                    accept="audio/*"
+                                    hidden
+                                    onChange={(e) =>
+                                        e.target.files && handleFileUpload(e.target.files[0], "audio")
+                                    }
+                                />
+                            </div>
+
+                            {/* TEXTO */}
                             <input
                                 value={inputValue}
-                                onChange={(e) =>
-                                    setInputValue(e.target.value)
-                                }
-                                onKeyDown={handleKeyPress}
-                                placeholder="Escribe un mensaje..."
+                                onChange={(e) => setInputValue(e.target.value)}
+                                placeholder="Escribe un mensaje…"
                                 className="flex-1 border rounded-lg px-4 py-3"
                             />
 
                             {inputValue.trim() ? (
-                                <Button type="button" size="icon" onClick={handleSend}>
+                                <Button size="icon" onClick={handleSendText}>
                                     <Send />
                                 </Button>
                             ) : (
-                                <Button type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={startRecording}
-                                >
+                                <Button variant="ghost" size="icon" onClick={startRecording}>
                                     <Mic />
                                 </Button>
                             )}

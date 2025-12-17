@@ -1,4 +1,4 @@
-import { api } from "@/api/axiosConfig";
+import { apiHttp } from "@/api/axiosConfig";
 import type { Match } from "@/models/Match";
 import type { InfoCard } from "@/models/InfoCard";
 
@@ -19,7 +19,7 @@ const API_URL = "/api/v0/matches";
 
 export const matchesApi = {
     async getSuggestions(userId: string): Promise<InfoCard[]> {
-        const res = await api.get<MatchSuggestionDTO[]>(
+        const res = await apiHttp.get<MatchSuggestionDTO[]>(
             `${API_URL}/suggestions/${userId}`
         );
 
@@ -41,10 +41,10 @@ export const matchesApi = {
     },
 
     async like(userId: string, targetId: string): Promise<Match> {
-        return (await api.post<Match>(`${API_URL}/${userId}/like/${targetId}`)).data;
+        return (await apiHttp.post<Match>(`${API_URL}/${userId}/like/${targetId}`)).data;
     },
 
     async dislike(userId: string, targetId: string): Promise<Match> {
-        return (await api.post<Match>(`${API_URL}/${userId}/dislike/${targetId}`)).data;
+        return (await apiHttp.post<Match>(`${API_URL}/${userId}/dislike/${targetId}`)).data;
     },
 };

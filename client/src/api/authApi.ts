@@ -1,6 +1,4 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:8080/auth/v0";
+import { apiHttp } from "./http";
 
 export interface LoginDTO {
     email: string;
@@ -28,36 +26,30 @@ export interface AuthResponse {
     userId: string;
 }
 
-export interface RefreshResponse {
-    accessToken: string;
-}
-
 export const authApi = {
-
-    async register(data: RegisterDTO): Promise<AuthResponse> {
-        const res = await axios.post<AuthResponse>(
-            `${API_URL}/register`,
-            data,
-            { withCredentials: true }
-        );
-        return res.data;
+    login(credentials: LoginDTO): Promise<AuthResponse> {
+        return apiHttp
+            .post<AuthResponse>("/auth/v0/login", credentials)
+            .then((res) => res.data);
     },
 
-    async login(credentials: LoginDTO): Promise<AuthResponse> {
-        const res = await axios.post<AuthResponse>(
-            `${API_URL}/login`,
-            credentials,
-            { withCredentials: true }
-        );
-        return res.data;
+    register(data: RegisterDTO): Promise<AuthResponse> {
+        return apiHttp
+            .post<AuthResponse>("/auth/v0/register", data)
+            .then((res) => res.data);
     },
 
-    async refresh(): Promise<RefreshResponse> {
-        const res = await axios.post<RefreshResponse>(
-            `${API_URL}/refresh`,
-            {},
-            { withCredentials: true }
-        );
-        return res.data;
+    refresh(): Promise<{ accessToken: string }> {
+        return apiHttp
+            .post<{ accessToken: string }>("/auth/v0/refresh")
+            .then((res) => res.data);
+    },
+
+    logout(userId: string): Promise<void> {
+        return apiHttp
+            .post("/auth/v0/logout", { userId })
+            .then(() => {});
     },
 };
+
+

@@ -1,9 +1,9 @@
-import type { UserLight } from "./UserLight";
+import type { InfoCard } from "./InfoCard";
 
 export interface Match {
     id: string;
-    usuario: UserLight;
-    target: UserLight;
+    usuario: InfoCard;
+    target: InfoCard;
     status: "LIKE" | "DISLIKE" | "null";
     fechaMatch: string;
 }

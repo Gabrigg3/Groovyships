@@ -1,102 +1,129 @@
-import { useEffect, useState } from "react";
+import {useEffect, useMemo, useState} from "react";
 import { SwipeCard } from "@/components/SwipeCard";
 import { ActionButtons } from "@/components/ActionButtons";
-import { MatchModal } from "@/components/MatchModal";
 import { matchesApi } from "@/api/matchesApi";
-import { usersApi } from "@/api/userApi";
 import { useAuthStore } from "@/store/authStore";
 import type { InfoCard, LookingFor } from "@/models/InfoCard";
 
 export function SwipeDeck() {
     const userId = useAuthStore((s) => s.userId);
-    if (!userId) return null;
 
     const [cards, setCards] = useState<InfoCard[]>([]);
-    const [currentUser, setCurrentUser] = useState<InfoCard | null>(null);
-    const [matchedProfile, setMatchedProfile] = useState<InfoCard | null>(null);
-    const [showMatchModal, setShowMatchModal] = useState(false);
     const [filter, setFilter] = useState<"todos" | LookingFor>("todos");
-
-    /* ================================
-       LOAD LOGGED USER
-    ================================ */
-    useEffect(() => {
-        usersApi.getById(userId).then((u) =>
-            setCurrentUser({
-                id: u.id,
-                name: u.nombre,
-                age: u.edad ?? 18,
-                gender: u.generoUsuario ?? "otro",
-                bio: u.biografia ?? "",
-                images: u.imagenes ?? [],
-                imageAlt: u.nombre,
-                location: u.ubicacion ?? "—",
-                occupation: u.ocupacion ?? "—",
-                interests: u.intereses ?? [],
-                lookingFor: u.lookingFor ?? [],
-            })
-        );
-    }, [userId]);
+    const [loading, setLoading] = useState(false);
 
     /* ================================
        LOAD SUGGESTIONS
-    ================================ */
+    ================================= */
     useEffect(() => {
-        matchesApi.getSuggestions(userId).then(setCards);
+        if (!userId) return;
+
+        setLoading(true);
+        matchesApi
+            .getSuggestions(userId)
+            .then(setCards)
+            .finally(() => setLoading(false));
     }, [userId]);
 
-    const filteredCards = cards.filter((c) =>
-        filter === "todos" ? true : c.lookingFor.includes(filter)
-    );
+    /* ================================
+       FILTERED DECK
+    ================================= */
+    const filteredCards = useMemo(() => {
+        return filter === "todos"
+            ? cards
+            : cards.filter((c) => c.lookingFor.includes(filter));
+    }, [cards, filter]);
 
-    const current = filteredCards[0];
+    const current = filteredCards[0] ?? null;
 
-    const removeCurrent = () =>
-        setCards((prev) => prev.filter((c) => c.id !== current?.id));
+    const removeCurrent = () => {
+        if (!current) return;
+        setCards((prev) => prev.filter((c) => c.id !== current.id));
+    };
+
+    /* ================================
+       ACTIONS
+    ================================= */
+    const [processing, setProcessing] = useState(false);
 
     const handleLike = async () => {
-        if (!current) return;
+        if (!current || !userId || processing) return;
 
-        const match = await matchesApi.like(userId, current.id);
-
-        if (match.target?.id === current.id && currentUser) {
-            setMatchedProfile(current);
-            setShowMatchModal(true);
+        setProcessing(true);
+        try {
+            await matchesApi.like(userId, current.id);
+        } finally {
+            removeCurrent();
+            setProcessing(false);
         }
-
-        removeCurrent();
     };
+
+
 
     const handleDislike = async () => {
-        if (!current) return;
-        await matchesApi.dislike(userId, current.id);
-        removeCurrent();
+        if (!current || !userId || processing) return;
+
+        setProcessing(true);
+        try {
+            await matchesApi.dislike(userId, current.id);
+        } finally {
+            removeCurrent();
+            setProcessing(false);
+        }
     };
 
-    return (
-        <>
-            {current && (
-                <>
-                    <SwipeCard
-                        profile={current}
-                        onLike={handleLike}
-                        onDislike={handleDislike}
-                    />
-                    <ActionButtons
-                        onLike={handleLike}
-                        onDislike={handleDislike}
-                        onSuperLike={handleLike}
-                    />
-                </>
-            )}
 
-            {showMatchModal && matchedProfile && currentUser && (
-                <MatchModal
-                    currentUser={currentUser}
-                    matchedUser={matchedProfile}
-                    onClose={() => setShowMatchModal(false)}
-                />
-            )}
-        </>
+    /* ================================
+       RENDER
+    ================================= */
+    if (!userId) {
+        return null; // aquí sí, porque no debería pasar
+    }
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-[calc(100vh-5rem)]">
+                Cargando perfiles...
+            </div>
+        );
+    }
+
+
+
+    return (
+        <div className="pt-16 lg:pt-20 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+            <div className="container mx-auto px-4 py-8 lg:py-12 max-w-2xl">
+
+                {/* FILTERS (si los tienes) */}
+                {/*
+            <div className="flex flex-wrap justify-center gap-3 mb-6 lg:mb-8">
+                ...
+            </div>
+            */}
+
+                <div className="flex flex-col items-center gap-6 lg:gap-8">
+                    {current ? (
+                        <>
+                            <SwipeCard
+                                profile={current}
+                                onLike={handleLike}
+                                onDislike={handleDislike}
+                            />
+
+                            <ActionButtons
+                                onLike={handleLike}
+                                onDislike={handleDislike}
+                                onSuperLike={handleLike}
+                            />
+                        </>
+                    ) : (
+                        <p className="text-center text-muted-foreground mt-8">
+                            No hay más perfiles disponibles
+                        </p>
+                    )}
+                </div>
+
+            </div>
+        </div>
     );
 }

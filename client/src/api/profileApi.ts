@@ -1,4 +1,4 @@
-import { api } from "@/api/axiosConfig";
+import { apiHttp } from "@/api/axiosConfig";
 
 /* ================================
    TIPOS (IGUALES AL BACKEND)
@@ -56,7 +56,7 @@ export const profileApi = {
      * GET /api/profile/me
      */
     getMe(): Promise<ProfileResponse> {
-        return api.get("/api/v0/profile/me").then(res => res.data);
+        return apiHttp.get("/api/v0/profile/me").then(res => res.data);
     },
 
     /**
@@ -64,7 +64,7 @@ export const profileApi = {
      * PUT /api/profile/me
      */
     updateMe(data: ProfileUpdateRequest): Promise<ProfileResponse> {
-        return api.put("/api/v0/profile/me", data).then(res => res.data);
+        return apiHttp.put("/api/v0/profile/me", data).then(res => res.data);
     },
 
 

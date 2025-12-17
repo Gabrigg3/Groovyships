@@ -19,7 +19,7 @@ import { messagesApi } from "@/api/messagesApi";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import { useAuthStore } from "@/store/authStore";
 import type { MessageResponse } from "@/models/MessageResponse";
-import type { UserLight } from "@/models/UserLight";
+import type { InfoCard } from "@/models/InfoCard";
 
 /* ---------------------------------------
    TIPOS
@@ -52,14 +52,22 @@ export function ChatWindow() {
         otherUserImage?: string;
     }) || {};
 
-    const [chatProfile, setChatProfile] = useState<UserLight | null>(null);
+    const [chatProfile, setChatProfile] = useState<InfoCard | null>(null);
 
     useEffect(() => {
         if (!otherUserId) return;
         setChatProfile({
             id: otherUserId,
-            nombre: otherUserName,
-            imagenes: otherUserImage ? [otherUserImage] : [],
+            name: otherUserName,
+            age: 0,
+            gender: "otro",
+            bio: "",
+            images: otherUserImage ? [otherUserImage] : [],
+            imageAlt: otherUserName,
+            location: "",
+            occupation: "",
+            interests: [],
+            lookingFor: [],
         });
     }, [otherUserId, otherUserName, otherUserImage]);
 
@@ -200,14 +208,14 @@ export function ChatWindow() {
                     </Button>
 
                     <Avatar className="w-12 h-12">
-                        <AvatarImage src={chatProfile?.imagenes?.[0]} />
+                        <AvatarImage src={chatProfile?.images?.[0]} />
                         <AvatarFallback>
-                            {chatProfile?.nombre?.[0] ?? "?"}
+                            {chatProfile?.name?.[0] ?? "?"}
                         </AvatarFallback>
                     </Avatar>
 
                     <h2 className="text-xl font-bold">
-                        {chatProfile?.nombre ?? "Cargando..."}
+                        {chatProfile?.name ?? "Cargando..."}
                     </h2>
                 </div>
             </div>

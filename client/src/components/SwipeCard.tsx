@@ -1,5 +1,10 @@
-import { useState } from "react";
-import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import {
+    motion,
+    useMotionValue,
+    useTransform,
+    AnimatePresence,
+} from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { InfoCard } from "@/models/InfoCard";
 import { Heart, X, MapPin, Briefcase } from "lucide-react";
@@ -13,24 +18,35 @@ interface SwipeCardProps {
 export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
     const [currentImage, setCurrentImage] = useState(0);
     const [showDetails, setShowDetails] = useState(false);
-    const [exitX, setExitX] = useState(0);
+    const [exitX, setExitX] = useState<number | null>(null);
+    const [locked, setLocked] = useState(false);
 
     const x = useMotionValue(0);
     const y = useMotionValue(0);
 
     const rotate = useTransform(x, [-200, 200], [-20, 20]);
     const opacity = useTransform(x, [-250, -150, 0, 150, 250], [0, 1, 1, 1, 0]);
+    const likeOpacity = useTransform(x, [40, 120], [0, 1]);
+    const dislikeOpacity = useTransform(x, [-120, -40], [1, 0]);
 
-    const genderLabels: Record<"hombre" | "mujer" | "otro", string> = {
-        hombre: "👨 Hombre",
-        mujer: "👩 Mujer",
-        otro: "🌈 Otro",
-    };
+    /* ================================
+       RESET WHEN PROFILE CHANGES
+    ================================= */
+    useEffect(() => {
+        setCurrentImage(0);
+        setShowDetails(false);
+        setExitX(null);
+        setLocked(false);
+        x.set(0);
+        y.set(0);
+    }, [profile.id, x, y]);
 
     /* ================================
        DRAG END LOGIC
     ================================= */
     const handleDragEnd = (_: any, info: any) => {
+        if (locked) return;
+
         const { offset } = info;
 
         if (offset.y < -120 && Math.abs(offset.x) < 80) {
@@ -41,12 +57,14 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
         }
 
         if (offset.x > 140) {
+            setLocked(true);
             setExitX(300);
             onLike();
             return;
         }
 
         if (offset.x < -140) {
+            setLocked(true);
             setExitX(-300);
             onDislike();
             return;
@@ -61,7 +79,14 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
     ================================= */
     const handleImageClick = (e: React.MouseEvent) => {
         e.stopPropagation();
+        if (profile.images.length === 0) return;
         setCurrentImage((prev) => (prev + 1) % profile.images.length);
+    };
+
+    const genderLabels: Record<"hombre" | "mujer" | "otro", string> = {
+        hombre: "👨 Hombre",
+        mujer: "👩 Mujer",
+        otro: "🌈 Otro",
     };
 
     const badges = {
@@ -104,8 +129,9 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
                         />
 
                         {/* Like */}
+                        {/* Like */}
                         <motion.div
-                            style={{ opacity: useTransform(x, [40, 120], [0, 1]) }}
+                            style={{ opacity: likeOpacity }}
                             className="absolute top-8 right-8 bg-primary text-white rounded-full p-4"
                         >
                             <Heart className="w-10 h-10" fill="currentColor" />
@@ -113,7 +139,7 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
 
                         {/* Dislike */}
                         <motion.div
-                            style={{ opacity: useTransform(x, [-120, -40], [1, 0]) }}
+                            style={{ opacity: dislikeOpacity }}
                             className="absolute top-8 left-8 bg-destructive text-white rounded-full p-4"
                         >
                             <X className="w-10 h-10" />

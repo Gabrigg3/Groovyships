@@ -32,6 +32,14 @@ public class NotificationService {
             NotificationType type,
             Map<String, Object> payload
     ) {
+
+        System.out.println("🔔 createNotification()");
+        System.out.println("   userId = " + userId);
+        System.out.println("   type = " + type);
+        System.out.println("   payload = " + payload);
+
+
+
         Notification notification = new Notification();
         notification.setUserId(userId);
         notification.setType(type);
@@ -42,8 +50,9 @@ public class NotificationService {
         Notification saved = notificationRepo.save(notification);
 
         // 🔔 Enviar notificación en tiempo real
-        messagingTemplate.convertAndSend(
-                "/topic/notifications/" + userId,
+        messagingTemplate.convertAndSendToUser(
+                userId,
+                "/queue/notifications",
                 saved
         );
 

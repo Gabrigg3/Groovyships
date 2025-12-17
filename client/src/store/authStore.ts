@@ -1,27 +1,47 @@
 import { create } from "zustand";
+import type { InfoCard } from "@/models/InfoCard";
 
-interface AuthState {
-    userId: string;
+type AuthState = {
+    // 🔐 auth
     accessToken: string | null;
+    userId: string | null;
+    hydrated: boolean;
 
-    setAccessToken: (accessToken: string, userId?: string) => void;
-    logout: () => void;
-}
+    // 👤 usuario logueado (GLOBAL)
+    currentUser: InfoCard | null;
+
+    // setters
+    setSession: (token: string, userId: string | null) => void;
+    setCurrentUser: (user: InfoCard) => void;
+    clearSession: () => void;
+    setHydrated: () => void;
+};
 
 export const useAuthStore = create<AuthState>((set) => ({
-    userId: localStorage.getItem("userId") ?? "",
-    accessToken: localStorage.getItem("accessToken"),
+    accessToken: null,
+    userId: null,
+    hydrated: false,
 
-    setAccessToken: (accessToken, userId) => {
-        localStorage.setItem("accessToken", accessToken);
-        if (userId) localStorage.setItem("userId", userId);
+    currentUser: null,
 
-        set({ accessToken, userId });
-    },
+    setSession: (token, userId) =>
+        set({
+            accessToken: token,
+            userId,
+        }),
 
-    logout: () => {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("userId");
-        set({ userId: "", accessToken: null });
-    },
+    setCurrentUser: (user) =>
+        set({
+            currentUser: user,
+        }),
+
+    clearSession: () =>
+        set({
+            accessToken: null,
+            userId: null,
+            currentUser: null,
+            hydrated: true, // importante: no bloquear la app
+        }),
+
+    setHydrated: () => set({ hydrated: true }),
 }));

@@ -9,6 +9,8 @@ export default defineConfig({
     global: 'window',
     },
     resolve: {
-        alias: { '@': path.resolve(__dirname, 'src') }
-    }
+        alias: {
+            "@": path.resolve(__dirname, "src"),
+        },
+    },
 });

@@ -192,7 +192,7 @@ export function Notifications() {
                                 No hay notificaciones
                             </h3>
                             <p className="text-muted-foreground font-body">
-                                Cuando alguien te dé like o te envíe un mensaje,
+                                Cuando alguien te de like o te envíe un mensaje,
                                 aparecerá aquí
                             </p>
                         </div>

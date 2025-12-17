@@ -1,9 +1,9 @@
-import { api  } from "@/api/axiosConfig";
+import { apiHttp  } from "@/api/axiosConfig";
 import { MessageResponse, MessageType } from "@/models/MessageResponse";
 
 export const messagesApi = {
     async getMessages(conversationId: string): Promise<MessageResponse[]> {
-        const res = await api.get(
+        const res = await apiHttp.get(
             `/api/v0/conversations/${conversationId}/messages`
         );
         return res.data;
@@ -14,7 +14,7 @@ export const messagesApi = {
         type: MessageType,
         content: string
     ): Promise<void> {
-        await api.post(
+        await apiHttp.post(
             `/api/v0/conversations/${conversationId}/messages`,
             { type, content }
         );

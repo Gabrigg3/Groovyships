@@ -3,16 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Heart } from "lucide-react";
+
 import { authApi } from "@/api/authApi";
 import { useAuthStore } from "@/store/authStore";
 
-interface LoginProps {
-    onLogin: () => void;
-}
-
-export function Login({ onLogin }: LoginProps) {
+export function Login() {
     const navigate = useNavigate();
-    const setTokens = useAuthStore((state) => state.setAccessToken);
+    const setSession = useAuthStore((s) => s.setSession);
+
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -25,19 +23,15 @@ export function Login({ onLogin }: LoginProps) {
         setError(null);
 
         try {
-            // llamada correcta al backend
-            const res = await authApi.login({
+            const { accessToken, userId } = await authApi.login({
                 email: formData.email,
                 password: formData.password,
             });
 
-            // respuesta: { accessToken, refreshToken, userId }
-            //setTokens(res.userId, res.accessToken);
-            setTokens(res.accessToken, res.userId);
+            // 🔑 guardar sesión (fuente de verdad)
+            setSession(accessToken, userId ?? null);
 
-            // si quieres guardar refreshToken fuera del store
-            localStorage.setItem("refreshToken", res.refreshToken);
-            onLogin();
+            // 👉 el router reaccionará solo
             navigate("/");
         } catch (err) {
             console.error("Error en login:", err);

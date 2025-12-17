@@ -1,4 +1,4 @@
-export interface UserLight {
+/*export interface UserLight {
     id: string;
     nombre: string;
 
@@ -28,4 +28,4 @@ export interface UserLight {
 
     // Rango de edad preferido [min, max]
     rangoEdad?: [number, number];
-}
+}*/

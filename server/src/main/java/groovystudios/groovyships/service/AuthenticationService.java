@@ -7,10 +7,12 @@ import groovystudios.groovyships.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.Date;
@@ -91,7 +93,6 @@ public class AuthenticationService {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // ❌ NO usar trim() ― rompe bcrypt
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Contraseña incorrecta");
         }
@@ -105,7 +106,8 @@ public class AuthenticationService {
     public RefreshToken refreshToken(String token) {
 
         RefreshToken refreshToken = refreshRepo.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Refresh token inválido"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token inválido"));
+
 
         if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
             refreshRepo.delete(refreshToken);

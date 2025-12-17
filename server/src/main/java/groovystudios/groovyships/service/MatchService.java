@@ -9,6 +9,7 @@ import groovystudios.groovyships.repository.MatchRepository;
 import groovystudios.groovyships.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,44 +49,138 @@ public class MatchService {
     // --------------------------------------------------
     public Match interact(String userId, String targetId, String action) {
 
+        System.out.println("==================================================");
+        System.out.println("👉 interact()");
+        System.out.println("   userId    = " + userId);
+        System.out.println("   targetId  = " + targetId);
+        System.out.println("   action    = " + action);
+        System.out.println("==================================================");
+
+        System.out.println("🧩 notificationService class = "
+                + notificationService.getClass().getName());
+
+
         User user = userRepo.findById(userId).orElseThrow();
         User target = userRepo.findById(targetId).orElseThrow();
 
-        // ¿Existe interacción inversa?
-        Optional<Match> reverse = matchRepo.findByUsuarioAndTarget(target, user);
-
-        // Guardar interacción actual
-        Match interaction = new Match(user, target, action);
-        matchRepo.save(interaction);
+        System.out.println("✔ Usuarios cargados");
+        System.out.println("   user.id   = " + user.getId());
+        System.out.println("   target.id = " + target.getId());
 
         // --------------------------------------------------
-        // LIKE MUTUO → MATCH REAL
+        // 1️⃣ INTERACCIÓN USER → TARGET
         // --------------------------------------------------
-        if ("LIKE".equals(action)
-                && reverse.isPresent()
-                && "LIKE".equals(reverse.get().getStatus1())) {
+        Optional<Match> existingOpt =
+                matchRepo.findByUsuarioAndTarget(user, target);
 
-            // CREAR (O RECUPERAR) CONVERSACIÓN
-            getOrCreateConversation(user.getId(), target.getId());
+        System.out.println("--------------------------------------------------");
+        System.out.println("🔍 existing interaction user → target");
+        System.out.println("   exists = " + existingOpt.isPresent());
 
-            // 🔔 Notificación para TARGET
-            notificationService.createNotification(
-                    target.getId(),
-                    NotificationType.MATCH,
-                    Map.of("profile", buildUserLight(user))
-            );
+        Match interaction;
 
-            // 🔔 Notificación para USER
-            notificationService.createNotification(
-                    user.getId(),
-                    NotificationType.MATCH,
-                    Map.of("profile", buildUserLight(target))
-            );
+        if (existingOpt.isPresent()) {
+            interaction = existingOpt.get();
+            System.out.println("   existing.status1 BEFORE = " + interaction.getStatus1());
+        } else {
+            interaction = new Match(user, target, action);
+            System.out.println("   creating new Match(user → target)");
         }
 
+        interaction.setStatus1(action);
+        matchRepo.save(interaction);
+
+        System.out.println("   interaction.status1 AFTER = " + interaction.getStatus1());
+
+
+
+        // --------------------------------------------------
+        // 2️⃣ INTERACCIÓN INVERSA TARGET → USER
+        // --------------------------------------------------
+        Optional<Match> reverseOpt =
+                matchRepo.findByUsuarioAndTarget(target, user);
+
+        System.out.println("--------------------------------------------------");
+        System.out.println("🔍 reverse interaction target → user");
+        System.out.println("   exists = " + reverseOpt.isPresent());
+
+        if (reverseOpt.isPresent()) {
+            System.out.println("   reverse.status1 = " + reverseOpt.get().getStatus1());
+        }
+
+        // --------------------------------------------------
+        // 3️⃣ CÁLCULO DE MATCH MUTUO
+        // --------------------------------------------------
+        boolean actionIsLike = "LIKE".equals(action);
+        boolean reverseExists = reverseOpt.isPresent();
+        boolean reverseIsLike = reverseExists &&
+                "LIKE".equals(reverseOpt.get().getStatus1());
+
+        System.out.println("--------------------------------------------------");
+        System.out.println("🧠 mutualLike evaluation");
+        System.out.println("   actionIsLike   = " + actionIsLike);
+        System.out.println("   reverseExists  = " + reverseExists);
+        System.out.println("   reverseIsLike  = " + reverseIsLike);
+
+        boolean mutualLike = actionIsLike && reverseExists && reverseIsLike;
+
+        System.out.println("   👉 mutualLike = " + mutualLike);
+
+        if (!mutualLike) {
+            System.out.println("❌ NO MATCH MUTUO → return interaction");
+            return interaction;
+        }
+
+        // --------------------------------------------------
+        // 4️⃣ COMPROBACIÓN DE CONVERSACIÓN
+        // --------------------------------------------------
+        boolean conversationExists =
+                conversationRepo
+                        .findByUserAIdAndUserBId(user.getId(), target.getId())
+                        .or(() -> conversationRepo.findByUserAIdAndUserBId(
+                                target.getId(), user.getId()
+                        ))
+                        .isPresent();
+
+        System.out.println("--------------------------------------------------");
+        System.out.println("💬 conversationExists = " + conversationExists);
+
+        if (conversationExists) {
+            System.out.println("⚠️ Match ya procesado → return interaction");
+            return interaction;
+        }
+
+        // --------------------------------------------------
+        // 5️⃣ MATCH REAL
+        // --------------------------------------------------
+        System.out.println("🔥🔥🔥 MATCH MUTUO REAL 🔥🔥🔥");
+
+        getOrCreateConversation(user.getId(), target.getId());
+        System.out.println("✔ Conversación creada");
+
+        System.out.println("🔔 creando notificación para TARGET");
+        notificationService.createNotification(
+                target.getId(),
+                NotificationType.MATCH,
+                Map.of("profile", buildUserLight(user))
+        );
+
+        System.out.println("🔔 creando notificación para USER");
+        notificationService.createNotification(
+                user.getId(),
+                NotificationType.MATCH,
+                Map.of("profile", buildUserLight(target))
+        );
+
+        System.out.println("==================================================");
+        System.out.println("✔ interact() FIN");
+        System.out.println("==================================================");
 
         return interaction;
     }
+
+
+
 
     // --------------------------------------------------
     // SUGERENCIAS DE USUARIOS
@@ -203,15 +298,16 @@ public class MatchService {
     // CONSTRUCCIÓN DE UserLight PARA NOTIFICACIONES
     // --------------------------------------------------
     private Map<String, Object> buildUserLight(User u) {
-        return Map.of(
-                "id", u.getId(),
-                "nombre", u.getNombre(),
-                "edad", u.getEdad(),
-                "gender", u.getGeneroUsuario(),
-                "imagenes", u.getImagenes(),
-                "lookingFor", u.getLookingFor()
-        );
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", u.getId());
+        map.put("nombre", u.getNombre());
+        map.put("edad", u.getEdad());
+        map.put("gender", u.getGeneroUsuario());
+        map.put("imagenes", u.getImagenes() != null ? u.getImagenes() : List.of());
+        map.put("lookingFor", u.getLookingFor() != null ? u.getLookingFor() : List.of());
+        return map;
     }
+
 
 
     // --------------------------------------------------

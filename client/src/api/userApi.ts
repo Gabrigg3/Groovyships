@@ -1,26 +1,27 @@
-import axios from "axios";
-import type { UserLight } from "@/models/UserLight";
-import { useAuthStore } from "@/store/authStore";
+import { apiHttp } from "@/api/axiosConfig";
+import type { InfoCard } from "@/models/InfoCard";
 
-const API_URL = "http://localhost:8080/api/v0/usuarios";
+const API_URL = "/api/v0/usuarios";
 
 export const usersApi = {
-    async getById(userId: string): Promise<UserLight> {
-        const token = useAuthStore.getState().accessToken;
+    async getById(userId: string): Promise<InfoCard> {
+        const res = await apiHttp.get<any>(`${API_URL}/${userId}`);
+        const u = res.data;
 
-        if (!token) {
-            throw new Error("No access token disponible");
-        }
+        return {
+            id: u.id,
+            name: u.nombre,
+            age: u.edad ?? 18,
+            gender: u.generoUsuario ?? "otro",
 
-        const res = await axios.get<UserLight>(
-            `${API_URL}/${userId}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
+            bio: u.biografia ?? "",
+            images: u.imagenes ?? [],
+            imageAlt: u.nombre,
 
-        return res.data;
+            location: u.ubicacion ?? "—",
+            occupation: u.ocupacion ?? "—",
+            interests: u.intereses ?? [],
+            lookingFor: u.lookingFor ?? [],
+        };
     },
 };

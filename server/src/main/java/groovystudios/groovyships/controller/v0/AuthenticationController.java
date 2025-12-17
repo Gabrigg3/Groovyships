@@ -22,6 +22,17 @@ public class AuthenticationController {
         this.authService = authService;
     }
 
+
+    private ResponseCookie buildRefreshCookie(String token) {
+        return ResponseCookie.from("refreshToken", token)
+                .httpOnly(true)
+                .secure(false)              // true en prod
+                .path("/")                  // 🔑 SIEMPRE /
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("Lax")           // 🔑 SPA cross-site
+                .build();
+    }
+
     // REGISTER
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
@@ -50,17 +61,12 @@ public class AuthenticationController {
         String accessToken = authService.generateAccessToken(saved);
         RefreshToken refreshToken = authService.generateRefreshToken(saved);
 
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken.getToken())
-                .httpOnly(true)
-                .secure(false) // ⚠️ true en producción con HTTPS
-                .path("/auth/v0/refresh") // 🔴 CORREGIDO (ver explicación abajo)
-                .maxAge(7 * 24 * 60 * 60)
-                .sameSite("Lax")
-                .build();
+        ResponseCookie cookie = buildRefreshCookie(refreshToken.getToken());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new AuthResponse(accessToken, saved.getId()));
+
     }
 
     // LOGIN
@@ -72,17 +78,12 @@ public class AuthenticationController {
         String accessToken = authService.generateAccessToken(logged);
         RefreshToken refreshToken = authService.generateRefreshToken(logged);
 
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken.getToken())
-                .httpOnly(true)
-                .secure(false)
-                .path("/auth/v0/refresh")
-                .maxAge(7 * 24 * 60 * 60)
-                .sameSite("Lax")
-                .build();
+        ResponseCookie cookie = buildRefreshCookie(refreshToken.getToken());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new AuthResponse(accessToken, logged.getId()));
+
     }
 
     // REFRESH
@@ -98,10 +99,23 @@ public class AuthenticationController {
         return ResponseEntity.ok(new RefreshResponse(newAccess));
     }
 
-    // LOGOUT (v0 legacy)
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody LogoutRequest request) {
+
         authService.logout(request.userId());
-        return ResponseEntity.noContent().build();
+
+        ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(false)
+                .path("/")          // 🔑 MISMO PATH
+                .maxAge(0)          // 🔑 BORRAR
+                .sameSite("Lax")
+                .build();
+
+        return ResponseEntity
+                .noContent()
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .build();
     }
+
 }

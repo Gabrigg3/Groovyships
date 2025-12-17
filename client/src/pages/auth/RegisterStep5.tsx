@@ -3,34 +3,36 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Heart, ArrowLeft, Users } from "lucide-react";
+
 import { authApi } from "@/api/authApi";
 import { useAuthStore } from "@/store/authStore";
 
-interface RegisterStep5Props {
-    onComplete: () => void;
-}
-
+/* ================================
+   TYPES
+================================= */
 type LookingFor = "romance" | "amistad";
 type Gender = "hombre" | "mujer" | "otro";
 
-const LOOKING_FOR_OPTIONS: {
-    value: LookingFor;
-    label: string;
-    gradient: string;
-}[] = [
+/* ================================
+   CONSTANTS
+================================= */
+const LOOKING_FOR_OPTIONS = [
     { value: "romance", label: "💕 Romance", gradient: "bg-gradient-1" },
     { value: "amistad", label: "🤝 Amistad", gradient: "bg-gradient-friendship" },
-];
+] as const;
 
-const GENDER_OPTIONS: { value: Gender; label: string }[] = [
+const GENDER_OPTIONS = [
     { value: "hombre", label: "👨 Hombres" },
     { value: "mujer", label: "👩 Mujeres" },
     { value: "otro", label: "🌈 Otros" },
-];
+] as const;
 
-export function RegisterStep5({ onComplete }: RegisterStep5Props) {
+/* ================================
+   COMPONENT
+================================= */
+export function RegisterStep5() {
     const navigate = useNavigate();
-    const { setAccessToken } = useAuthStore();
+    const setSession = useAuthStore((s) => s.setSession);
 
     const [formData, setFormData] = useState({
         lookingFor: [] as LookingFor[],
@@ -90,12 +92,8 @@ export function RegisterStep5({ onComplete }: RegisterStep5Props) {
 
         const step1 = JSON.parse(localStorage.getItem("registerStep1") || "{}");
         const step2 = JSON.parse(localStorage.getItem("registerStep2") || "{}");
-        const step3 = JSON.parse(localStorage.getItem("registerStep3") || "{}"); // fotos
-        const step4 = JSON.parse(localStorage.getItem("registerStep4") || "{}"); // intereses
-
-        const imagenes: string[] = Array.isArray(step3.photos)
-            ? step3.photos
-            : [];
+        const step3 = JSON.parse(localStorage.getItem("registerStep3") || "{}");
+        const step4 = JSON.parse(localStorage.getItem("registerStep4") || "{}");
 
         const payload = {
             nombre: step1.name,
@@ -109,7 +107,7 @@ export function RegisterStep5({ onComplete }: RegisterStep5Props) {
             biografia: step2.bio,
             generoUsuario: step2.gender,
 
-            imagenes,
+            imagenes: Array.isArray(step3.photos) ? step3.photos : [],
             intereses: step4.interests ?? [],
 
             lookingFor: formData.lookingFor,
@@ -118,12 +116,20 @@ export function RegisterStep5({ onComplete }: RegisterStep5Props) {
             rangoEdad: [formData.ageRangeMin, formData.ageRangeMax],
         };
 
-
         try {
-            const res = await authApi.register(payload);
-            localStorage.clear();
-            setAccessToken(res.accessToken, res.userId);
-            onComplete();
+            const { accessToken, userId } = await authApi.register(payload);
+
+            // 🧹 limpiar SOLO pasos de registro
+            localStorage.removeItem("registerStep1");
+            localStorage.removeItem("registerStep2");
+            localStorage.removeItem("registerStep3");
+            localStorage.removeItem("registerStep4");
+
+            // 🔑 guardar sesión
+            setSession(accessToken, userId ?? null);
+
+            // 👉 entrar en la app
+            navigate("/");
         } catch (err) {
             console.error("❌ Error en registro", err);
             alert("Error al completar el registro");
@@ -131,7 +137,6 @@ export function RegisterStep5({ onComplete }: RegisterStep5Props) {
             setIsSubmitting(false);
         }
     };
-
     /* ================================
        RENDER
     ================================= */

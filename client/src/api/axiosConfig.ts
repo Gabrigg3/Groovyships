@@ -1,16 +1,15 @@
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
+import { authApi } from "@/api/authApi";
 
-// Axios principal
-export const api = axios.create({
+export const apiHttp = axios.create({
     baseURL: "http://localhost:8080",
-    withCredentials: true, // necesario para cookie HttpOnly del refresh
+    withCredentials: true,
 });
 
-/* ----------------------------------------------------
-   1) REQUEST INTERCEPTOR → añade ACCESS TOKEN
----------------------------------------------------- */
-api.interceptors.request.use((config) => {
+let refreshPromise: Promise<string> | null = null;
+
+apiHttp.interceptors.request.use((config) => {
     const token = useAuthStore.getState().accessToken;
 
     if (token) {
@@ -20,51 +19,44 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-/* ----------------------------------------------------
-   2) RESPONSE INTERCEPTOR → si 401 → usar REFRESH TOKEN
----------------------------------------------------- */
-api.interceptors.response.use(
-    (res) => res,
-
+apiHttp.interceptors.response.use(
+    (response) => response,
     async (error) => {
-        const originalRequest = error.config;
+        const original = error.config;
 
-        // si expiró el accessToken y aún no reintentamos
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
-
-            try {
-                // pedir nuevo access token
-                const refreshApi = axios.create({
-                    baseURL: "http://localhost:8080",
-                    withCredentials: true,
-                });
-
-                const refreshRes = await refreshApi.post("/auth/v0/refresh");
-
-
-                const newAccess = refreshRes.data.accessToken;
-
-                // actualizamos tokens en el store
-                useAuthStore.getState().setAccessToken(
-                    newAccess,
-                    useAuthStore.getState().userId ?? undefined
-                );
-
-                // añadimos nuevo accessToken a la petición original
-                originalRequest.headers.Authorization = `Bearer ${newAccess}`;
-
-                // reintentamos
-                return api(originalRequest);
-
-            } catch (err) {
-                console.error("❌ Error al refrescar token:", err);
-
-                useAuthStore.getState().logout();
-                window.location.href = "/login";
-            }
+        if (error.response?.status !== 401) {
+            return Promise.reject(error);
         }
 
-        return Promise.reject(error);
+        if (original._retry) {
+            useAuthStore.getState().clearSession();
+            return Promise.reject(error);
+        }
+
+        original._retry = true;
+
+        try {
+            if (!refreshPromise) {
+                refreshPromise = authApi
+                    .refresh()
+                    .then((res) => res.accessToken)
+                    .finally(() => {
+                        refreshPromise = null;
+                    });
+            }
+
+            const newToken = await refreshPromise;
+
+            // ✅ API NUEVA DEL STORE
+            useAuthStore
+                .getState()
+                .setSession(newToken, useAuthStore.getState().userId);
+
+            original.headers.Authorization = `Bearer ${newToken}`;
+            return apiHttp(original);
+        } catch (e) {
+            useAuthStore.getState().clearSession();
+            return Promise.reject(e);
+        }
     }
 );

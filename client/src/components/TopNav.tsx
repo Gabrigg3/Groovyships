@@ -1,40 +1,56 @@
-import { Bell, MessageCircle, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
-import { useNotificationStore } from '@/store/notificationStore';
-import { useEffect, useState } from 'react';
-import type { UserLight } from '@/models/UserLight';
-import { usersApi } from '@/api/userApi';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { useAuthStore } from "@/store/authStore";
+import { useNotificationStore } from "@/store/notificationStore";
+import { useUserStore } from "@/store/userStore";
+
+import { authApi } from "@/api/authApi";
+import {Button} from "@/components/ui/button";
+import {Bell, MessageCircle, User} from "lucide-react";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 
 export function TopNav() {
     const navigate = useNavigate();
-    const userId = useAuthStore((s) => s.userId);
+
+    // AUTH
+    const { userId, clearSession } = useAuthStore();
+
+    // USER
+    const { user, fetchMe, clearUser } = useUserStore();
+
+    // NOTIFICATIONS
     const unreadCount = useNotificationStore((s) => s.unreadCount);
-    const logout = useAuthStore((s) => s.logout);
 
-    const [user, setUser] = useState<UserLight | null>(null);
-
-    // --------------------------------------------------
-    // CARGAR USUARIO LOGUEADO
-    // --------------------------------------------------
+    // ---------------------------------------------
+    // CARGAR / REFRESCAR USUARIO LOGUEADO
+    // ---------------------------------------------
     useEffect(() => {
-        if (!userId) return;
+        if (!userId) {
+            clearUser();
+            return;
+        }
 
-        usersApi
-            .getById(userId)
-            .then(setUser)
-            .catch((err) => {
-                console.error('Error cargando usuario:', err);
-            });
-    }, [userId]);
+        fetchMe(userId);
+    }, [userId, fetchMe, clearUser]);
+
+    // ---------------------------------------------
+    // LOGOUT
+    // ---------------------------------------------
+    const handleLogout = async () => {
+        try {
+            if (userId) {
+                await authApi.logout(userId);
+            }
+        } catch (err) {
+            console.warn("Logout backend falló");
+        } finally {
+            clearSession();
+            clearUser();
+            navigate("/login");
+        }
+    };
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border h-16 lg:h-20">
@@ -96,11 +112,11 @@ export function TopNav() {
                             >
                                 <Avatar className="w-10 h-10 lg:w-12 lg:h-12">
                                     <AvatarImage
-                                        src={user?.imagenes?.[0]}
-                                        alt={user?.nombre ?? 'Usuario'}
+                                        src={user?.images?.[0]}
+                                        alt={user?.name ?? 'Usuario'}
                                     />
                                     <AvatarFallback className="bg-primary text-primary-foreground">
-                                        {user?.nombre?.charAt(0) ?? 'U'}
+                                        {user?.name?.charAt(0) ?? 'U'}
                                     </AvatarFallback>
                                 </Avatar>
                             </Button>
@@ -114,7 +130,7 @@ export function TopNav() {
 
                             <DropdownMenuItem
                                 onClick={() => {
-                                    logout();
+                                    handleLogout();
                                     window.location.href = "/login";
                                 }}
                             >

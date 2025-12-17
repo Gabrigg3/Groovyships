@@ -1,121 +1,235 @@
 import { useState } from "react";
-import { motion, useMotionValue, useTransform } from "framer-motion";
+import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { Heart, X } from "lucide-react";
-import type { UserLight } from "@/models/UserLight";
+import { Heart, X, MapPin, Briefcase } from "lucide-react";
+import { Profile } from "@/models/Profile"
 
 interface SwipeCardProps {
-    profile: UserLight;
+    profile: Profile;
     onLike: () => void;
     onDislike: () => void;
 }
 
 export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
+    const [currentImage, setCurrentImage] = useState(0);
+    const [showDetails, setShowDetails] = useState(false);
     const [exitX, setExitX] = useState(0);
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const x = useMotionValue(0);
     const y = useMotionValue(0);
-    const rotate = useTransform(x, [-200, 200], [-25, 25]);
-    const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
 
+    const rotate = useTransform(x, [-200, 200], [-20, 20]);
+    const opacity = useTransform(x, [-250, -150, 0, 150, 250], [0, 1, 1, 1, 0]);
+
+    /* ================================
+       DRAG END LOGIC
+    ================================= */
     const handleDragEnd = (_: any, info: any) => {
-        if (info.offset.x > 100) {
-            setExitX(200);
-            onLike();
-        } else if (info.offset.x < -100) {
-            setExitX(-200);
-            onDislike();
+        const { offset } = info;
+
+        // 👆 Swipe UP → detalles
+        if (offset.y < -120 && Math.abs(offset.x) < 80) {
+            setShowDetails(true);
+            x.set(0);
+            y.set(0);
+            return;
         }
+
+        // ❤️ Like
+        if (offset.x > 140) {
+            setExitX(300);
+            onLike();
+            return;
+        }
+
+        // ❌ Dislike
+        if (offset.x < -140) {
+            setExitX(-300);
+            onDislike();
+            return;
+        }
+
+        // 🔄 Reset
+        x.set(0);
+        y.set(0);
     };
 
+    /* ================================
+       IMAGE TAP
+    ================================= */
     const handleImageClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!profile.imagenes?.length) return;
-        setCurrentImageIndex((prev) => (prev + 1) % profile.imagenes!.length);
+        setCurrentImage((prev) => (prev + 1) % profile.images.length);
     };
 
-    const getBadge = (type: string) => {
-        if (type === "romance") return { emoji: "💕", label: "Romance", color: "bg-gradient-1" };
-        if (type === "amistad") return { emoji: "🤝", label: "Amistad", color: "bg-gradient-friendship" };
-        return null;
+    /* ================================
+       BADGE COLORS
+    ================================= */
+    const badges = {
+        romance: { emoji: "💕", label: "Romance", color: "bg-gradient-1" },
+        amistad: { emoji: "🤝", label: "Amistad", color: "bg-gradient-friendship" },
     };
 
+    /* ================================
+       CARD
+    ================================= */
     return (
-        <motion.div
-            style={{ x, y, rotate, opacity }}
-            drag
-            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-            onDragEnd={handleDragEnd}
-            animate={exitX !== 0 ? { x: exitX } : {}}
-            transition={{ duration: 0.3 }}
-            className="w-full max-w-md relative cursor-grab active:cursor-grabbing"
-        >
-            <Card className="overflow-hidden bg-card border-0 relative">
-                <div className="relative aspect-[3/4]">
+        <>
+            <motion.div
+                style={{ x, y, rotate, opacity }}
+                drag
+                dragElastic={0.35}
+                dragConstraints={{ top: 0, bottom: 0, left: 0, right: 0 }}
+                onDragEnd={handleDragEnd}
+                animate={exitX ? { x: exitX } : {}}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="w-full max-w-md cursor-grab active:cursor-grabbing"
+            >
+                <Card className="overflow-hidden border-0 bg-card relative">
+                    <div className="relative aspect-[3/4]">
 
-                    {/* Indicadores de imagen */}
-                    <div className="absolute top-4 left-0 right-0 flex gap-2 px-4 z-10">
-                        {profile.imagenes?.map((_, index) => (
-                            <div
-                                key={index}
-                                className={`flex-1 h-1 rounded-full transition-all ${
-                                    index === currentImageIndex ? "bg-white" : "bg-white/30"
-                                }`}
-                            />
-                        ))}
-                    </div>
-
-                    {/* Imagen */}
-                    <img
-                        src={profile.imagenes?.[currentImageIndex] || "/placeholder.png"}
-                        alt={profile.nombre}
-                        className="w-full h-full object-cover cursor-pointer"
-                        onClick={handleImageClick}
-                    />
-
-                    {/* Indicador LIKE */}
-                    <motion.div
-                        style={{ opacity: useTransform(x, [0, 100], [0, 1]) }}
-                        className="absolute top-8 right-8 bg-tertiary text-tertiary-foreground rounded-full p-4"
-                    >
-                        <Heart className="w-12 h-12" strokeWidth={2} fill="currentColor" />
-                    </motion.div>
-
-                    {/* Indicador DISLIKE */}
-                    <motion.div
-                        style={{ opacity: useTransform(x, [-100, 0], [1, 0]) }}
-                        className="absolute top-8 left-8 bg-destructive text-destructive-foreground rounded-full p-4"
-                    >
-                        <X className="w-12 h-12" strokeWidth={2} />
-                    </motion.div>
-
-                    {/* Overlay inferior */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900/90 to-transparent p-6">
-                        <div className="flex flex-wrap gap-2 mb-3">
-                            {profile.lookingFor?.map((type) => {
-                                const badge = getBadge(type);
-                                return (
-                                    badge && (
-                                        <span
-                                            key={type}
-                                            className={`${badge.color} text-white px-3 py-1 rounded-full text-sm font-semibold`}
-                                        >
-                                            {badge.emoji} {badge.label}
-                                        </span>
-                                    )
-                                );
-                            })}
+                        {/* Image indicators */}
+                        <div className="absolute top-4 left-0 right-0 flex gap-2 px-4 z-10">
+                            {profile.images.map((_, i) => (
+                                <div
+                                    key={i}
+                                    className={`flex-1 h-1 rounded-full ${
+                                        i === currentImage ? "bg-white" : "bg-white/30"
+                                    }`}
+                                />
+                            ))}
                         </div>
 
-                        <h2 className="text-white text-3xl font-bold">
-                            {profile.nombre}, {profile.edad}
-                        </h2>
+                        <img
+                            src={profile.images[currentImage]}
+                            alt={profile.name}
+                            className="w-full h-full object-cover"
+                            onClick={handleImageClick}
+                        />
 
-                        <p className="text-white/90 text-base">{profile.biografia}</p>
+                        {/* Like */}
+                        <motion.div
+                            style={{ opacity: useTransform(x, [40, 120], [0, 1]) }}
+                            className="absolute top-8 right-8 bg-primary text-white rounded-full p-4"
+                        >
+                            <Heart className="w-10 h-10" fill="currentColor" />
+                        </motion.div>
+
+                        {/* Dislike */}
+                        <motion.div
+                            style={{ opacity: useTransform(x, [-120, -40], [1, 0]) }}
+                            className="absolute top-8 left-8 bg-destructive text-white rounded-full p-4"
+                        >
+                            <X className="w-10 h-10" />
+                        </motion.div>
+
+                        {/* Overlay */}
+                        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-6">
+                            <div className="flex gap-2 mb-3">
+                                {profile.lookingFor.map((t) => (
+                                    <span
+                                        key={t}
+                                        className={`${badges[t].color} text-white px-3 py-1 rounded-full text-sm font-semibold`}
+                                    >
+                    {badges[t].emoji} {badges[t].label}
+                  </span>
+                                ))}
+                            </div>
+
+                            <h2 className="text-white text-3xl font-bold">
+                                {profile.name}, {profile.age}
+                            </h2>
+
+                            <p className="text-white/90 mt-2 line-clamp-2">
+                                {profile.bio}
+                            </p>
+
+                            <p className="text-white/70 text-sm text-center mt-4">
+                                ⬆️ Desliza hacia arriba para ver más
+                            </p>
+                        </div>
                     </div>
-                </div>
-            </Card>
-        </motion.div>
+                </Card>
+            </motion.div>
+
+            {/* ================================
+         DETAILS MODAL
+      ================================= */}
+            <AnimatePresence>
+                {showDetails && (
+                    <motion.div
+                        className="fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowDetails(false)}
+                    >
+                        <motion.div
+                            className="w-full max-w-2xl bg-card rounded-t-3xl max-h-[90vh] overflow-y-auto"
+                            initial={{ y: "100%" }}
+                            animate={{ y: 0 }}
+                            exit={{ y: "100%" }}
+                            transition={{ type: "spring", stiffness: 260, damping: 30 }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="sticky top-0 bg-card border-b p-4 flex justify-between">
+                                <h3 className="text-xl font-bold">
+                                    {profile.name}, {profile.age}
+                                </h3>
+                                <button onClick={() => setShowDetails(false)}>
+                                    <X />
+                                </button>
+                            </div>
+
+                            <div className="p-6 space-y-6">
+                                {/* Gallery */}
+                                <div className="grid grid-cols-3 gap-2">
+                                    {profile.images.map((img, i) => (
+                                        <img
+                                            key={i}
+                                            src={img}
+                                            className="aspect-square object-cover rounded-lg"
+                                        />
+                                    ))}
+                                </div>
+
+                                {/* Bio */}
+                                <section>
+                                    <h4 className="font-bold mb-2">Sobre mí</h4>
+                                    <p>{profile.bio}</p>
+                                </section>
+
+                                {/* Info */}
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="flex gap-3 bg-muted p-4 rounded-lg">
+                                        <MapPin className="text-primary" />
+                                        {profile.location}
+                                    </div>
+                                    <div className="flex gap-3 bg-muted p-4 rounded-lg">
+                                        <Briefcase className="text-primary" />
+                                        {profile.occupation}
+                                    </div>
+                                </div>
+
+                                {/* Interests */}
+                                <div>
+                                    <h4 className="font-bold mb-2">Intereses</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {profile.interests.map((i) => (
+                                            <span
+                                                key={i}
+                                                className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm"
+                                            >
+                        {i}
+                      </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
     );
 }

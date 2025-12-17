@@ -1,22 +1,16 @@
-type Gender = "hombre" | "mujer" | "otro";
-type LookingFor = "romance" | "amistad";
+import {useAuthStore} from "@/store/authStore";
+
+export type LookingFor = "romance" | "amistad";
 
 export interface Profile {
     id: string;
     name: string;
     age: number;
-    gender: Gender;
-    occupation: string;
-    location: string;
     bio: string;
-
-    lookingFor: LookingFor[];
-    interestedInGenderRomance: Gender[];
-    interestedInGenderFriendship: Gender[];
-
-    ageRangeMin: number;
-    ageRangeMax: number;
-
+    images: string[];
+    imageAlt: string;
+    location: string;
+    occupation: string;
     interests: string[];
-    photos: string[];
+    lookingFor: LookingFor[];
 }

@@ -1,45 +1,43 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Heart, ArrowLeft, Users } from 'lucide-react';
-import { authApi } from "@/api/authApi";
-import { useAuthStore } from "@/store/authStore";
+import { Heart, ArrowLeft, Check } from 'lucide-react';
+import { interestsApi } from '@/api/interestsApi';
+import type { Interes } from '@/models/Interes';
 
-interface RegisterStep4Props {
-    onComplete: () => void;
-}
-
-type LookingForValue = "romance" | "friendship";
-
-const LOOKING_FOR_OPTIONS: {
-    value: LookingForValue;
-    label: string;
-    gradient: string;
-}[] = [
-    { value: "romance", label: "💕 Romance", gradient: "bg-gradient-1" },
-    { value: "friendship", label: "🤝 Amistad", gradient: "bg-gradient-friendship" },
-];
-
-const GENDER_OPTIONS = [
-    { value: 'male', label: '👨 Hombres' },
-    { value: 'female', label: '👩 Mujeres' },
-    { value: 'other', label: '🌈 Otros' },
-];
-
-export function RegisterStep4({ onComplete }: RegisterStep4Props) {
+export function RegisterStep4() {
     const navigate = useNavigate();
-    const { setAccessToken } = useAuthStore();
 
-    const [formData, setFormData] = useState({
-        lookingFor: [] as LookingForValue[],
-        interestedInGenderRomance: [] as string[],
-        interestedInGenderFriendship: [] as string[],
-        ageRangeMin: '18',
-        ageRangeMax: '35',
-    });
+    const [interestsByCategory, setInterestsByCategory] =
+        useState<Record<string, Interes[]>>({});
 
+    const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    // --------------------------------------------------
+    // CARGAR INTERESES DESDE BACKEND
+    // --------------------------------------------------
+
+    /*
+    *
+    * */
+    useEffect(() => {
+        interestsApi.getAll()
+            .then((interests) => {
+                const grouped = interests.reduce((acc, interes) => {
+                    acc[interes.categoria] ||= [];
+                    acc[interes.categoria].push(interes);
+                    return acc;
+                }, {} as Record<string, Interes[]>);
+
+                setInterestsByCategory(grouped);
+            })
+            .catch((e) => {
+                console.error("Error cargando intereses:", e);
+            });
+
+    }, []);
 
     // --------------------------------------------------
     // VALIDACIÓN
@@ -47,39 +45,12 @@ export function RegisterStep4({ onComplete }: RegisterStep4Props) {
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
-        if (formData.lookingFor.length === 0) {
-            newErrors.lookingFor = 'Debes seleccionar al menos una opción';
+        if (selectedInterests.length === 0) {
+            newErrors.interests = 'Debes seleccionar al menos un interés';
         }
 
-        if (
-            formData.lookingFor.includes('romance') &&
-            formData.interestedInGenderRomance.length === 0
-        ) {
-            newErrors.interestedInGenderRomance =
-                'Debes seleccionar al menos un género para romance';
-        }
-
-        if (
-            formData.lookingFor.includes('friendship') &&
-            formData.interestedInGenderFriendship.length === 0
-        ) {
-            newErrors.interestedInGenderFriendship =
-                'Debes seleccionar al menos un género para amistad';
-        }
-
-        const minAge = Number(formData.ageRangeMin);
-        const maxAge = Number(formData.ageRangeMax);
-
-        if (minAge < 18 || minAge > 100) {
-            newErrors.ageRangeMin = 'La edad mínima debe estar entre 18 y 100';
-        }
-
-        if (maxAge < 18 || maxAge > 100) {
-            newErrors.ageRangeMax = 'La edad máxima debe estar entre 18 y 100';
-        }
-
-        if (minAge >= maxAge) {
-            newErrors.ageRange = 'La edad mínima debe ser menor que la máxima';
+        if (selectedInterests.length > 15) {
+            newErrors.interests = 'Puedes seleccionar máximo 15 intereses';
         }
 
         setErrors(newErrors);
@@ -87,48 +58,27 @@ export function RegisterStep4({ onComplete }: RegisterStep4Props) {
     };
 
     // --------------------------------------------------
-    // SUBMIT FINAL
+    // TOGGLE INTERÉS (POR ID)
     // --------------------------------------------------
-    const handleSubmit = async (e: React.FormEvent) => {
+    const toggleInterest = (interestId: string) => {
+        if (selectedInterests.includes(interestId)) {
+            setSelectedInterests(selectedInterests.filter((i) => i !== interestId));
+        } else if (selectedInterests.length < 15) {
+            setSelectedInterests([...selectedInterests, interestId]);
+        }
+    };
+
+    // --------------------------------------------------
+    // SUBMIT
+    // --------------------------------------------------
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!validateForm()) return;
-
-        const step1 = JSON.parse(localStorage.getItem('registerStep1') || '{}');
-        const step2 = JSON.parse(localStorage.getItem('registerStep2') || '{}');
-        const step3 = JSON.parse(localStorage.getItem('registerStep3') || '{}');
-
-        const newUser = {
-            nombre: step1.name,
-            email: step1.email,
-            telefono: Number(step1.phone),
-            password: step1.password,
-
-            edad: Number(step2.age),
-            ocupacion: step2.occupation,
-            ubicacion: step2.location,
-            biografia: step2.bio,
-            generoUsuario: step2.gender,
-
-            imagenes: step2.photo ? [step2.photo] : [],
-            intereses: step3.interests,
-
-            lookingFor: formData.lookingFor,
-            generosRomance: formData.interestedInGenderRomance,
-            generosAmistad: formData.interestedInGenderFriendship,
-            rangoEdad: [
-                Number(formData.ageRangeMin),
-                Number(formData.ageRangeMax),
-            ],
-        };
-
-        try {
-            const result = await authApi.register(newUser);
-            setAccessToken(result.accessToken, result.userId);
-
-            localStorage.clear();
-            onComplete();
-        } catch (err) {
-            console.error('❌ Error en registro:', err);
+        if (validateForm()) {
+            localStorage.setItem(
+                'registerStep4',
+                JSON.stringify({ interests: selectedInterests })
+            );
+            navigate('/register/step5');
         }
     };
 
@@ -137,184 +87,82 @@ export function RegisterStep4({ onComplete }: RegisterStep4Props) {
     // --------------------------------------------------
     return (
         <div className="min-h-screen bg-gradient-1 flex items-center justify-center p-4">
-            <Card className="w-full max-w-md bg-card border-0 shadow-2xl p-8 lg:p-10">
-
+            <Card className="w-full max-w-4xl bg-card text-card-foreground border-0 shadow-2xl p-8 lg:p-10 max-h-[90vh] overflow-y-auto">
                 <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => navigate('/register/step3')}
-                    className="mb-4"
+                    className="mb-4 bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground"
                 >
-                    <ArrowLeft className="w-6 h-6" />
+                    <ArrowLeft className="w-6 h-6" strokeWidth={1.5} />
                 </Button>
 
                 <div className="flex flex-col items-center mb-8">
                     <div className="bg-primary rounded-full p-4 mb-4">
-                        <Heart className="w-12 h-12 text-primary-foreground" fill="currentColor" />
+                        <Heart className="w-12 h-12 text-primary-foreground" strokeWidth={2} fill="currentColor" />
                     </div>
-                    <h1 className="text-3xl font-bold mb-2">Preferencias</h1>
-                    <p className="text-muted-foreground text-center">
-                        Paso 4 de 4: ¿Qué estás buscando?
+                    <h1 className="text-foreground text-3xl font-bold font-sans mb-2">
+                        Tus Intereses
+                    </h1>
+                    <p className="text-muted-foreground text-center font-body">
+                        Paso 3 de 4: Selecciona tus intereses
+                    </p>
+                    <p className="text-primary text-sm font-semibold font-body mt-2">
+                        {selectedInterests.length} / 15 seleccionados
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    {Object.entries(interestsByCategory).map(([category, interests]) => (
+                        <div key={category}>
+                            <h3 className="text-foreground text-lg font-bold font-sans mb-4">
+                                {category}
+                            </h3>
 
-                    {/* LOOKING FOR */}
-                    <div>
-                        <label className="block text-sm font-semibold mb-3">
-                            <Users className="w-4 h-4 inline mr-1" />
-                            Estoy buscando
-                        </label>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                                {interests.map((interest) => {
+                                    const isSelected = selectedInterests.includes(interest.id);
 
-                        <div className="space-y-3">
-                            {LOOKING_FOR_OPTIONS.map(opt => (
-                                <button
-                                    key={opt.value}
-                                    type="button"
-                                    onClick={() => {
-                                        const updated = formData.lookingFor.includes(opt.value)
-                                            ? formData.lookingFor.filter(v => v !== opt.value)
-                                            : [...formData.lookingFor, opt.value];
-                                        setFormData({ ...formData, lookingFor: updated });
-                                    }}
-                                    className={`w-full px-4 py-3 rounded-lg font-semibold transition-all ${
-                                        formData.lookingFor.includes(opt.value)
-                                            ? `${opt.gradient} text-white scale-105 shadow-lg`
-                                            : 'bg-muted text-muted-foreground hover:bg-accent'
-                                    }`}
-                                >
-                                    {opt.label}
-                                </button>
-                            ))}
+                                    return (
+                                        <button
+                                            key={interest.id}
+                                            type="button"
+                                            onClick={() => toggleInterest(interest.id)}
+                                            disabled={!isSelected && selectedInterests.length >= 15}
+                                            className={`relative px-4 py-3 rounded-lg font-semibold font-body text-sm transition-all duration-200 ${
+                                                isSelected
+                                                    ? 'bg-primary text-primary-foreground scale-105 shadow-lg'
+                                                    : 'bg-muted text-muted-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed'
+                                            }`}
+                                        >
+                                            {interest.nombre}
+
+                                            {isSelected && (
+                                                <div className="absolute -top-1 -right-1 bg-success text-success-foreground rounded-full p-1">
+                                                    <Check className="w-3 h-3" strokeWidth={3} />
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
+                    ))}
 
-                        <p className="text-muted-foreground text-xs mt-2">
-                            Puedes seleccionar múltiples opciones
+                    {errors.interests && (
+                        <p className="text-destructive text-sm text-center font-semibold">
+                            {errors.interests}
                         </p>
-
-                        {errors.lookingFor && (
-                            <p className="text-destructive text-sm mt-1">{errors.lookingFor}</p>
-                        )}
-                    </div>
-
-                    {/* ROMANCE */}
-                    {formData.lookingFor.includes('romance') && (
-                        <div>
-                            <label className="block text-sm font-semibold mb-3">
-                                💕 Interesado/a en (Romance)
-                            </label>
-                            <div className="grid grid-cols-3 gap-3">
-                                {GENDER_OPTIONS.map(opt => (
-                                    <button
-                                        key={opt.value}
-                                        type="button"
-                                        onClick={() => {
-                                            const updated = formData.interestedInGenderRomance.includes(opt.value)
-                                                ? formData.interestedInGenderRomance.filter(v => v !== opt.value)
-                                                : [...formData.interestedInGenderRomance, opt.value];
-                                            setFormData({ ...formData, interestedInGenderRomance: updated });
-                                        }}
-                                        className={`px-4 py-3 rounded-lg font-semibold transition-all ${
-                                            formData.interestedInGenderRomance.includes(opt.value)
-                                                ? 'bg-gradient-1 text-white scale-105 shadow-lg'
-                                                : 'bg-muted text-muted-foreground hover:bg-accent'
-                                        }`}
-                                    >
-                                        {opt.label}
-                                    </button>
-                                ))}
-                            </div>
-                            {errors.interestedInGenderRomance && (
-                                <p className="text-destructive text-sm mt-1">
-                                    {errors.interestedInGenderRomance}
-                                </p>
-                            )}
-                        </div>
                     )}
 
-                    {/* FRIENDSHIP */}
-                    {formData.lookingFor.includes('friendship') && (
-                        <div>
-                            <label className="block text-sm font-semibold mb-3">
-                                🤝 Interesado/a en (Amistad)
-                            </label>
-                            <div className="grid grid-cols-3 gap-3">
-                                {GENDER_OPTIONS.map(opt => (
-                                    <button
-                                        key={opt.value}
-                                        type="button"
-                                        onClick={() => {
-                                            const updated = formData.interestedInGenderFriendship.includes(opt.value)
-                                                ? formData.interestedInGenderFriendship.filter(v => v !== opt.value)
-                                                : [...formData.interestedInGenderFriendship, opt.value];
-                                            setFormData({ ...formData, interestedInGenderFriendship: updated });
-                                        }}
-                                        className={`px-4 py-3 rounded-lg font-semibold transition-all ${
-                                            formData.interestedInGenderFriendship.includes(opt.value)
-                                                ? 'bg-gradient-friendship text-friendship-foreground scale-105 shadow-lg'
-                                                : 'bg-muted text-muted-foreground hover:bg-accent'
-                                        }`}
-                                    >
-                                        {opt.label}
-                                    </button>
-                                ))}
-                            </div>
-                            {errors.interestedInGenderFriendship && (
-                                <p className="text-destructive text-sm mt-1">
-                                    {errors.interestedInGenderFriendship}
-                                </p>
-                            )}
-                        </div>
-                    )}
-
-                    {/* AGE RANGE */}
-                    <div>
-                        <label className="block text-sm font-semibold mb-3">
-                            Rango de edad deseado
-                        </label>
-
-                        <div className="flex items-center gap-4">
-                            <input
-                                type="number"
-                                min="18"
-                                max="100"
-                                value={formData.ageRangeMin}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, ageRangeMin: e.target.value })
-                                }
-                                className="w-full bg-background border border-input rounded-lg px-4 py-3"
-                            />
-                            <span className="text-muted-foreground">-</span>
-                            <input
-                                type="number"
-                                min="18"
-                                max="100"
-                                value={formData.ageRangeMax}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, ageRangeMax: e.target.value })
-                                }
-                                className="w-full bg-background border border-input rounded-lg px-4 py-3"
-                            />
-                        </div>
-
-                        <div className="bg-muted rounded-lg p-4 mt-4 text-center">
-                            Buscando personas entre{' '}
-                            <span className="font-bold text-primary">{formData.ageRangeMin}</span> y{' '}
-                            <span className="font-bold text-primary">{formData.ageRangeMax}</span> años
-                        </div>
-
-                        {(errors.ageRangeMin || errors.ageRangeMax || errors.ageRange) && (
-                            <p className="text-destructive text-sm mt-1">
-                                {errors.ageRange || errors.ageRangeMin || errors.ageRangeMax}
-                            </p>
-                        )}
+                    <div className="sticky bottom-0 bg-card pt-4 border-t border-border">
+                        <Button
+                            type="submit"
+                            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-lg py-6"
+                        >
+                            Continuar
+                        </Button>
                     </div>
-
-                    <Button type="submit" className="w-full py-6 text-lg">
-                        Completar Registro
-                    </Button>
-
                 </form>
             </Card>
         </div>

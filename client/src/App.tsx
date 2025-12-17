@@ -17,6 +17,7 @@ import { RegisterStep1 } from "./pages/auth/RegisterStep1";
 import { RegisterStep2 } from "./pages/auth/RegisterStep2";
 import { RegisterStep3 } from "./pages/auth/RegisterStep3";
 import { RegisterStep4 } from "./pages/auth/RegisterStep4";
+import { RegisterStep5 } from "./pages/auth/RegisterStep5";
 import { AppLayout } from "./components/AppLayout";
 
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
@@ -65,9 +66,10 @@ export default function App() {
                         <Route path="/register/step1" element={<RegisterStep1 />} />
                         <Route path="/register/step2" element={<RegisterStep2 />} />
                         <Route path="/register/step3" element={<RegisterStep3 />} />
+                        <Route path="/register/step4" element={<RegisterStep4 />} />
                         <Route
-                            path="/register/step4"
-                            element={<RegisterStep4 onComplete={() => setIsAuthenticated(true)} />}
+                            path="/register/step5"
+                            element={<RegisterStep5 onComplete={() => setIsAuthenticated(true)} />}
                         />
                         <Route path="*" element={<Navigate to="/login" replace />} />
                     </>

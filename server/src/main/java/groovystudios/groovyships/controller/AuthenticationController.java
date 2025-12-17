@@ -32,12 +32,21 @@ public class AuthenticationController {
         String accessToken = authService.generateAccessToken(saved);
         RefreshToken refreshToken = authService.generateRefreshToken(saved);
 
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put("accessToken", accessToken);
-        tokens.put("refreshToken", refreshToken.getToken());
-        tokens.put("userId", saved.getId());
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken.getToken())
+                .httpOnly(true)
+                .secure(false)
+                .path("/auth/refresh")
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("Lax")
+                .build();
 
-        return ResponseEntity.ok(tokens);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(Map.of(
+                        "accessToken", accessToken,
+                        "userId", saved.getId()
+                ));
+
     }
 
     @PostMapping("/login")

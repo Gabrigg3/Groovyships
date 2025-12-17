@@ -52,6 +52,10 @@ export function Profile() {
     const [isEditingGender, setIsEditingGender] = useState(false);
     const [isEditingAgeRange, setIsEditingAgeRange] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [interestMap, setInterestMap] = useState<Record<string, string>>({});
+    const [isEditingHeader, setIsEditingHeader] = useState(false);
+
     /* ================================
        LOAD PROFILE
     ================================= */
@@ -76,6 +80,19 @@ export function Profile() {
         });
     }, []);
 
+    //================================
+    //   INTERESTS
+    //=================================
+    useEffect(() => {
+        interestsApi.getAll().then((interests) => {
+            const map: Record<string, string> = {};
+            interests.forEach((i) => {
+                map[i.id] = i.nombre;
+            });
+            setInterestMap(map);
+        });
+    }, []);
+
 
 
     if (!profileData) {
@@ -86,26 +103,52 @@ export function Profile() {
        SAVE PROFILE
     ================================= */
     const saveProfile = async () => {
-        await profileApi.updateMe({
-            name: profileData.name,
-            age: profileData.age,
-            gender: profileData.gender,
-            occupation: profileData.occupation,
-            location: profileData.location,
-            bio: profileData.bio,
-            lookingFor: profileData.lookingFor,
-            interestedInGenderRomance: profileData.interestedInGenderRomance,
-            interestedInGenderFriendship: profileData.interestedInGenderFriendship,
-            ageRangeMin: profileData.ageRangeMin,
-            ageRangeMax: profileData.ageRangeMax,
-            interests: profileData.interests,
-            photos: profileData.photos,
-        });
+        if (!profileData) return;
+
+        try {
+            setIsSaving(true);
+
+            await profileApi.updateMe({
+                name: profileData.name,
+                age: profileData.age,
+                gender: profileData.gender,
+                occupation: profileData.occupation,
+                location: profileData.location,
+                bio: profileData.bio,
+                lookingFor: profileData.lookingFor,
+                interestedInGenderRomance: profileData.interestedInGenderRomance,
+                interestedInGenderFriendship: profileData.interestedInGenderFriendship,
+                ageRangeMin: profileData.ageRangeMin,
+                ageRangeMax: profileData.ageRangeMax,
+                interests: profileData.interests,
+                photos: profileData.photos,
+            });
+
+            // opcional: cerrar modos edición
+            setIsEditingBio(false);
+            setIsEditingGender(false);
+            setIsEditingLookingFor(false);
+            setIsEditingAgeRange(false);
+
+        } catch (err) {
+            console.error("Error guardando perfil", err);
+            alert("❌ Error al guardar el perfil");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
-    const handleDeleteAccount = () => {
-        localStorage.clear();
-        window.location.href = "/login";
+
+
+    const handleDeleteAccount = async () => {
+        try {
+            await profileApi.deleteMe();
+            localStorage.clear();
+            window.location.href = "/login";
+        } catch (e) {
+            console.error("Error eliminando cuenta", e);
+            alert("No se pudo eliminar la cuenta");
+        }
     };
 
     const genderLabels: Record<Gender, string> = {
@@ -115,6 +158,12 @@ export function Profile() {
     };
 
     const genderOptions: { value: Gender; label: string }[] = [
+        { value: "hombre", label: "👨 Hombre" },
+        { value: "mujer", label: "👩 Mujer" },
+        { value: "otro", label: "🌈 Otro" },
+    ];
+
+    const lovefriendhipoptions: { value: Gender; label: string }[] = [
         { value: "hombre", label: "👨 Hombres" },
         { value: "mujer", label: "👩 Mujeres" },
         { value: "otro", label: "🌈 Otros" },
@@ -153,56 +202,142 @@ export function Profile() {
     return (
         <div className="pt-16 lg:pt-20 min-h-screen bg-background">
             <div className="container mx-auto px-4 lg:px-8 py-8 lg:py-12 max-w-4xl">
-                <h1 className="text-foreground text-3xl lg:text-4xl font-bold font-sans mb-8 lg:mb-12">
-                    Edit Profile
-                </h1>
+                <div className="flex items-center justify-between mb-8 lg:mb-12">
+                    <h1 className="text-foreground text-3xl lg:text-4xl font-bold font-sans">
+                        Edit Profile
+                    </h1>
+
+                    <Button
+                        onClick={saveProfile}
+                        disabled={isSaving}
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                    >
+                        {isSaving ? "Guardando..." : "Guardar"}
+                    </Button>
+                </div>
 
                 {/* Profile Header */}
-                <Card className="bg-card text-card-foreground border-border p-6 lg:p-8 mb-6">
+                <Card className="bg-card text-card-foreground border-border p-6 lg:p-8 mb-6 relative">
+
+                    {/* BOTÓN EDITAR */}
+                    <Button
+                        onClick={() => setIsEditingHeader(!isEditingHeader)}
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-4 right-4 bg-transparent text-foreground hover:bg-accent"
+                    >
+                        <Edit2 className="w-5 h-5" />
+                    </Button>
+
                     <div className="flex flex-col md:flex-row items-center gap-6">
-                        <div className="relative">
-                            <Avatar className="w-32 h-32 lg:w-40 lg:h-40">
-                                <AvatarImage src="https://c.animaapp.com/miuehdn2n7lalI/img/ai_1.png" alt="portrait user" />
-                                <AvatarFallback className="bg-primary text-primary-foreground text-4xl">ME</AvatarFallback>
-                            </Avatar>
-                            <Button
-                                size="icon"
-                                className="absolute bottom-0 right-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
-                            >
-                                <Camera className="w-5 h-5" strokeWidth={1.5} />
-                            </Button>
-                        </div>
 
                         <div className="flex-1 text-center md:text-left">
-                            <h2 className="text-foreground text-2xl lg:text-3xl font-bold font-sans mb-2">
-                                {profileData.name}, {profileData.age}
+
+                            {/* NOMBRE */}
+                            <h2 className="text-foreground text-2xl lg:text-3xl font-bold font-sans mb-2 flex flex-wrap items-center gap-2 justify-center md:justify-start">
+                                {isEditingHeader ? (
+                                    <>
+                                        {/* NOMBRE */}
+                                        <input
+                                            value={profileData.name}
+                                            onChange={(e) =>
+                                                setProfileData({
+                                                    ...profileData,
+                                                    name: e.target.value,
+                                                })
+                                            }
+                                            className="bg-background border border-input rounded-lg px-3 py-2"
+                                            placeholder="Nombre"
+                                        />
+
+                                        <span>,</span>
+
+                                        {/* EDAD */}
+                                        <input
+                                            type="number"
+                                            min={18}
+                                            max={100}
+                                            value={profileData.age}
+                                            onChange={(e) =>
+                                                setProfileData({
+                                                    ...profileData,
+                                                    age: Number(e.target.value),
+                                                })
+                                            }
+                                            className="w-20 bg-background border border-input rounded-lg px-3 py-2"
+                                            placeholder="Edad"
+                                        />
+                                    </>
+                                ) : (
+                                    <>
+                                        {profileData.name}, {profileData.age}
+                                    </>
+                                )}
                             </h2>
+
                             <div className="flex flex-col md:flex-row items-center gap-4 text-muted-foreground mb-3">
-                                <div className="flex items-center gap-2">
+
+                                {/* UBICACIÓN */}
+                                <div className="flex items-center gap-2 w-full md:w-auto">
                                     <MapPin className="w-5 h-5" strokeWidth={1.5} />
-                                    <span className="text-base font-body">{profileData.location}</span>
+
+                                    {isEditingHeader ? (
+                                        <input
+                                            value={profileData.location}
+                                            onChange={(e) =>
+                                                setProfileData({ ...profileData, location: e.target.value })
+                                            }
+                                            className="w-full bg-background border border-input rounded-lg px-3 py-2"
+                                        />
+                                    ) : (
+                                        <span className="text-base font-body">
+                            {profileData.location}
+                        </span>
+                                    )}
                                 </div>
-                                <div className="flex items-center gap-2">
+
+                                {/* OCUPACIÓN */}
+                                <div className="flex items-center gap-2 w-full md:w-auto">
                                     <Briefcase className="w-5 h-5" strokeWidth={1.5} />
-                                    <span className="text-base font-body">{profileData.occupation}</span>
+
+                                    {isEditingHeader ? (
+                                        <input
+                                            value={profileData.occupation}
+                                            onChange={(e) =>
+                                                setProfileData({
+                                                    ...profileData,
+                                                    occupation: e.target.value,
+                                                })
+                                            }
+                                            className="w-full bg-background border border-input rounded-lg px-3 py-2"
+                                            placeholder="Ocupación"
+                                        />
+                                    ) : (
+                                        <span className="text-base font-body">
+                                            {profileData.occupation}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
+
+                            {/* BADGES */}
                             <div className="flex flex-wrap justify-center md:justify-start gap-2">
                                 {profileData.lookingFor.map((type) => {
                                     const badge = lookingForLabels[type];
-
-                                    if (!badge) return null; // 👈 protección CRÍTICA
+                                    if (!badge) return null;
 
                                     const gradientClass =
-                                        type === "romance" ? "bg-gradient-1" : "bg-gradient-friendship";
+                                        type === "romance"
+                                            ? "bg-gradient-1"
+                                            : "bg-gradient-friendship";
 
                                     return (
                                         <span
                                             key={type}
-                                            className={`${gradientClass} text-white px-3 py-1 rounded-full text-sm font-semibold font-body`}
+                                            className={`${gradientClass} text-white px-3 py-1 rounded-full text-sm font-semibold`}
                                         >
-            {badge.emoji} {badge.label}
-        </span>
+                            {badge.emoji} {badge.label}
+                        </span>
                                     );
                                 })}
                             </div>
@@ -256,9 +391,12 @@ export function Profile() {
                             </Button>
                         </div>
                     ) : (
-                        <p className="text-foreground text-lg font-body">
-                            {genderLabels[profileData.gender]}
-                        </p>
+                        <div className="flex gap-2">
+                            <span className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold font-body">
+                                {genderLabels[profileData.gender]}
+                            </span>
+                        </div>
+
                     )}
                 </Card>
 
@@ -360,24 +498,33 @@ export function Profile() {
                                         💕 Interesado/a en (Romance)
                                     </label>
                                     <div className="grid grid-cols-3 gap-3">
-                                        {genderOptions.map((option) => (
-                                            <button
-                                                key={option.value}
-                                                type="button"
-                                                onClick={() => {
-                                                    const updated = profileData.interestedInGenderRomance.includes(option.value)
-                                                        ? profileData.interestedInGenderRomance.filter(g => g !== option.value)
-                                                        : [...profileData.interestedInGenderRomance, option.value];
+                                        {lovefriendhipoptions.map((option) => {
+                                            const selected = profileData.interestedInGenderRomance.includes(option.value);
 
-                                                    setProfileData({
-                                                        ...profileData,
-                                                        interestedInGenderRomance: updated,
-                                                    });
-                                                }}
-                                            >
-                                                {option.label}
-                                            </button>
-                                        ))}
+                                            return (
+                                                <button
+                                                    key={option.value}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const updated = selected
+                                                            ? profileData.interestedInGenderRomance.filter(g => g !== option.value)
+                                                            : [...profileData.interestedInGenderRomance, option.value];
+
+                                                        setProfileData({
+                                                            ...profileData,
+                                                            interestedInGenderRomance: updated,
+                                                        });
+                                                    }}
+                                                    className={`px-4 py-3 rounded-lg font-semibold transition-all ${
+                                                        selected
+                                                            ? "bg-gradient-1 text-white scale-105 shadow-lg"
+                                                            : "bg-muted text-muted-foreground hover:bg-accent"
+                                                    }`}
+                                                >
+                                                    {option.label}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
@@ -389,24 +536,33 @@ export function Profile() {
                                         🤝 Interesado/a en (Amistad)
                                     </label>
                                     <div className="grid grid-cols-3 gap-3">
-                                        {genderOptions.map((option) => (
-                                            <button
-                                                key={option.value}
-                                                type="button"
-                                                onClick={() => {
-                                                    const updated = profileData.interestedInGenderRomance.includes(option.value)
-                                                        ? profileData.interestedInGenderRomance.filter(g => g !== option.value)
-                                                        : [...profileData.interestedInGenderRomance, option.value];
+                                        {lovefriendhipoptions.map((option) => {
+                                            const selected = profileData.interestedInGenderFriendship.includes(option.value);
 
-                                                    setProfileData({
-                                                        ...profileData,
-                                                        interestedInGenderRomance: updated,
-                                                    });
-                                                }}
-                                            >
-                                                {option.label}
-                                            </button>
-                                        ))}
+                                            return (
+                                                <button
+                                                    key={option.value}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const updated = selected
+                                                            ? profileData.interestedInGenderFriendship.filter(g => g !== option.value)
+                                                            : [...profileData.interestedInGenderFriendship, option.value];
+
+                                                        setProfileData({
+                                                            ...profileData,
+                                                            interestedInGenderFriendship: updated,
+                                                        });
+                                                    }}
+                                                    className={`px-4 py-3 rounded-lg font-semibold transition-all ${
+                                                        selected
+                                                            ? "bg-gradient-friendship text-white scale-105 shadow-lg"
+                                                            : "bg-muted text-muted-foreground hover:bg-accent"
+                                                    }`}
+                                                >
+                                                    {option.label}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
@@ -603,15 +759,16 @@ export function Profile() {
                         </Button>
                     </div>
                     <div className="flex flex-wrap gap-3">
-                        {profileData.interests.map((interest, index) => (
+                        {profileData.interests.map((interestId) => (
                             <span
-                                key={index}
+                                key={interestId}
                                 className="bg-primary/10 text-primary px-4 py-2 rounded-full text-base font-body"
                             >
-                {interest}
-              </span>
+                            {interestMap[interestId] ?? "Interés"}
+                            </span>
                         ))}
                     </div>
+
                 </Card>
 
                 {/* Delete Account Section */}

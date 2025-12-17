@@ -37,7 +37,6 @@ export function Login({ onLogin }: LoginProps) {
 
             // si quieres guardar refreshToken fuera del store
             localStorage.setItem("refreshToken", res.refreshToken);
-            console.log("ACCESS TOKEN:", localStorage.getItem("accessToken"));
             onLogin();
             navigate("/");
         } catch (err) {

@@ -114,38 +114,6 @@ export function RegisterStep2() {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
 
-                    {/* FOTO */}
-                    <div className="flex flex-col items-center">
-                        <div className="relative mb-4">
-                            <Avatar className="w-32 h-32">
-                                {formData.photo ? (
-                                    <AvatarImage src={formData.photo} alt="Profile" />
-                                ) : (
-                                    <AvatarFallback className="bg-muted text-muted-foreground text-4xl">
-                                        <Camera className="w-12 h-12" strokeWidth={1.5} />
-                                    </AvatarFallback>
-                                )}
-                            </Avatar>
-
-                            <Button
-                                type="button"
-                                size="icon"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="absolute bottom-0 right-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
-                            >
-                                <Camera className="w-5 h-5" strokeWidth={1.5} />
-                            </Button>
-
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handlePhotoChange}
-                                className="hidden"
-                            />
-                        </div>
-                        <p className="text-muted-foreground text-sm">Sube una foto de perfil</p>
-                    </div>
 
                     {/* GRID EDAD + OCUPACIÓN */}
                     <div className="grid grid-cols-2 gap-4">

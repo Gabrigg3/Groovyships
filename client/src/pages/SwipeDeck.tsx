@@ -5,9 +5,11 @@ import { MatchModal } from "@/components/MatchModal";
 import { matchesApi } from "@/api/matchesApi";
 import type { UserLight } from "@/models/UserLight";
 import { useAuthStore } from "@/store/authStore";
-
+import type { Profile, LookingFor } from "@/models/Profile";
+/* ================================
+   COMPONENT
+================================ */
 export function SwipeDeck() {
-
     const userId = useAuthStore((s) => s.userId);
 
     if (!userId) {
@@ -19,11 +21,11 @@ export function SwipeDeck() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [showMatchModal, setShowMatchModal] = useState(false);
     const [matchedProfile, setMatchedProfile] = useState<UserLight | null>(null);
-    const [filter, setFilter] = useState<"todos" | "romance" | "amistad">("todos");
+    const [filter, setFilter] = useState<"todos" | LookingFor>("todos");
 
-    // ---------------------------------------
-    // Cargar sugerencias al montar
-    // ---------------------------------------
+    /* ================================
+       FETCH SUGGESTIONS
+    ================================ */
     useEffect(() => {
         matchesApi
             .getSuggestions(userId)
@@ -31,36 +33,38 @@ export function SwipeDeck() {
             .catch((e) => console.error("Error cargando sugerencias:", e));
     }, [userId]);
 
-    // ---------------------------------------
-    // Aplicar filtro
-    // ---------------------------------------
+
+    /* ================================
+       FILTER
+    ================================ */
     const filtered = profiles.filter((p) =>
         filter === "todos" ? true : p.lookingFor?.includes(filter)
     );
 
     const current = filtered[currentIndex];
 
-    // ---------------------------------------
-    // Eliminar perfil actual de la lista
-    // ---------------------------------------
+    /* ================================
+       REMOVE CURRENT
+    ================================ */
     const removeCurrentProfile = () => {
         if (!current) return;
-
         setProfiles((prev) => prev.filter((p) => p.id !== current.id));
-        setCurrentIndex(0); // evitar desbordes
+        setCurrentIndex(0);
     };
 
-    // ---------------------------------------
-    // LIKE
-    // ---------------------------------------
+    /* ================================
+       LIKE
+    ================================ */
     const handleLike = async () => {
         if (!current) return;
 
         try {
             const match = await matchesApi.like(userId, current.id);
 
-            // Es match real
-            if (match.target?.id === current.id && match.usuario?.id === userId) {
+            if (
+                match.target?.id === current.id &&
+                match.usuario?.id === userId
+            ) {
                 setMatchedProfile(current);
                 setShowMatchModal(true);
             }
@@ -71,9 +75,9 @@ export function SwipeDeck() {
         removeCurrentProfile();
     };
 
-    // ---------------------------------------
-    // DISLIKE
-    // ---------------------------------------
+    /* ================================
+       DISLIKE
+    ================================ */
     const handleDislike = async () => {
         if (!current) return;
 
@@ -86,11 +90,40 @@ export function SwipeDeck() {
         removeCurrentProfile();
     };
 
+    /* ================================
+       NORMALIZE PROFILE (🔥 AQUÍ ESTABA EL ERROR)
+    ================================ */
+    const normalizedProfile: Profile | null = current
+        ? {
+            id: current.id,
+            name: current.nombre ?? "Usuario",
+            age: current.edad ?? 18,
+            bio: current.biografia ?? "",
+            images: current.imagenes ?? [],
+            imageAlt: current.nombre ?? "Foto de perfil",
+            location: current.ubicacion ?? "—",
+            occupation: current.ocupacion ?? "—",
+            interests: current.intereses ?? [],
+            lookingFor: [
+                ...(current.generosRomance?.length
+                    ? (["romance"] as LookingFor[])
+                    : []),
+                ...(current.generosAmistad?.length
+                    ? (["amistad"] as LookingFor[])
+                    : []),
+            ],
+        }
+        : null;
+
+
+    /* ================================
+       RENDER
+    ================================ */
     return (
         <div className="pt-16 lg:pt-20 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
             <div className="container mx-auto px-4 py-8 max-w-2xl">
 
-                {/* Filtros */}
+                {/* FILTERS */}
                 <div className="flex justify-center gap-4 mb-8">
                     {[
                         { key: "todos", label: "🌟 Todos" },
@@ -115,10 +148,10 @@ export function SwipeDeck() {
                 </div>
 
                 <div className="flex flex-col items-center gap-6">
-                    {current ? (
+                    {normalizedProfile ? (
                         <>
                             <SwipeCard
-                                profile={current}
+                                profile={normalizedProfile}
                                 onLike={handleLike}
                                 onDislike={handleDislike}
                             />

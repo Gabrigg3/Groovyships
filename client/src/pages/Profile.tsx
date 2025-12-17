@@ -4,8 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { uploadMedia } from "@/api/mediaApi";
 import { interestsApi } from "@/api/interestsApi";
-import type { Interes } from "@/models/Interes";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import {
     AlertDialog,
     AlertDialogAction,

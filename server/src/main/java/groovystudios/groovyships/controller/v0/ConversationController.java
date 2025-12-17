@@ -1,7 +1,6 @@
-package groovystudios.groovyships.controller;
+package groovystudios.groovyships.controller.v0;
 
-import groovystudios.groovyships.dto.ConversationResponse;
-import groovystudios.groovyships.model.User;
+import groovystudios.groovyships.dto.v0.ConversationResponse;
 import groovystudios.groovyships.service.ConversationService;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,7 +8,7 @@ import org.springframework.security.core.Authentication;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/conversations")
+@RequestMapping("/api/v0/conversations")
 public class ConversationController {
 
     private final ConversationService conversationService;

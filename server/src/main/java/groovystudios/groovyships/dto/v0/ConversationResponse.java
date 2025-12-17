@@ -1,4 +1,4 @@
-package groovystudios.groovyships.dto;
+package groovystudios.groovyships.dto.v0;
 
 import java.time.LocalDateTime;
 

@@ -6,7 +6,7 @@ export const notificationsApi = {
     // TODAS
     async getAll(): Promise<Notification[]> {
         const res = await api.get<Notification[]>(
-            "/api/notifications"
+            "/api/v0/notifications"
         );
         return res.data;
     },
@@ -14,7 +14,7 @@ export const notificationsApi = {
     // SOLO NO LEÍDAS
     async getUnread(): Promise<Notification[]> {
         const res = await api.get<Notification[]>(
-            "/api/notifications/unread"
+            "/api/v0/notifications/unread"
         );
         return res.data;
     },
@@ -22,14 +22,14 @@ export const notificationsApi = {
     // MARCAR UNA
     async markAsRead(notificationId: string): Promise<void> {
         await api.post(
-            `/api/notifications/${notificationId}/read`
+            `/api/v0/notifications/${notificationId}/read`
         );
     },
 
     // MARCAR TODAS
     async markAllAsRead(): Promise<void> {
         await api.post(
-            "/api/notifications/read-all"
+            "/api/v0/notifications/read-all"
         );
     },
 };

@@ -3,6 +3,7 @@ export interface UserLight {
     nombre: string;
 
     edad?: number;
+
     ubicacion?: string;
     biografia?: string;
     intereses?: string[];

@@ -4,7 +4,7 @@ import { MessageResponse, MessageType } from "@/models/MessageResponse";
 export const messagesApi = {
     async getMessages(conversationId: string): Promise<MessageResponse[]> {
         const res = await api.get(
-            `/api/conversations/${conversationId}/messages`
+            `/api/v0/conversations/${conversationId}/messages`
         );
         return res.data;
     },
@@ -15,7 +15,7 @@ export const messagesApi = {
         content: string
     ): Promise<void> {
         await api.post(
-            `/api/conversations/${conversationId}/messages`,
+            `/api/v0/conversations/${conversationId}/messages`,
             { type, content }
         );
     },

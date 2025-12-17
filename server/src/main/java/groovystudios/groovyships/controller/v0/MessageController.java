@@ -1,9 +1,8 @@
-package groovystudios.groovyships.controller;
+package groovystudios.groovyships.controller.v0;
 
-import groovystudios.groovyships.dto.MessageResponse;
-import groovystudios.groovyships.dto.SendMessageRequest;
+import groovystudios.groovyships.dto.v0.MessageResponse;
+import groovystudios.groovyships.dto.v0.SendMessageRequest;
 import groovystudios.groovyships.model.Message;
-import groovystudios.groovyships.model.User;
 import groovystudios.groovyships.service.MessageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/conversations/{conversationId}/messages")
+@RequestMapping("/api/v0/conversations/{conversationId}/messages")
 public class MessageController {
 
     private final MessageService messageService;

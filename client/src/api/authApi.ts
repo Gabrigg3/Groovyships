@@ -1,16 +1,10 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/auth";
+const API_URL = "http://localhost:8080/auth/v0";
 
 export interface LoginDTO {
     email: string;
     password: string;
-}
-
-export interface LoginResponse {
-    accessToken: string;
-    refreshToken: string;
-    userId: string;
 }
 
 export interface RegisterDTO {
@@ -29,25 +23,41 @@ export interface RegisterDTO {
     ocupacion: string;
 }
 
+export interface AuthResponse {
+    accessToken: string;
+    userId: string;
+}
+
+export interface RefreshResponse {
+    accessToken: string;
+}
+
 export const authApi = {
 
-    async register(data: RegisterDTO): Promise<LoginResponse> {
-        const res = await axios.post<LoginResponse>(`${API_URL}/register`, data, {
-            withCredentials: true,
-        });
+    async register(data: RegisterDTO): Promise<AuthResponse> {
+        const res = await axios.post<AuthResponse>(
+            `${API_URL}/register`,
+            data,
+            { withCredentials: true }
+        );
         return res.data;
     },
 
-    async login(credentials: LoginDTO): Promise<LoginResponse> {
-        const res = await axios.post<LoginResponse>(`${API_URL}/login`, credentials, {
-            withCredentials: true,
-        });
+    async login(credentials: LoginDTO): Promise<AuthResponse> {
+        const res = await axios.post<AuthResponse>(
+            `${API_URL}/login`,
+            credentials,
+            { withCredentials: true }
+        );
         return res.data;
     },
 
-    refresh(refreshToken: string): Promise<LoginResponse> {
-        return axios
-            .post<LoginResponse>(`${API_URL}/refresh`, { refreshToken }, { withCredentials: true })
-            .then((res) => res.data);
+    async refresh(): Promise<RefreshResponse> {
+        const res = await axios.post<RefreshResponse>(
+            `${API_URL}/refresh`,
+            {},
+            { withCredentials: true }
+        );
+        return res.data;
     },
 };

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
+import { InfoCard } from "@/models/InfoCard";
 import { Heart, X, MapPin, Briefcase } from "lucide-react";
-import { Profile } from "@/models/Profile"
 
 interface SwipeCardProps {
-    profile: Profile;
+    profile: InfoCard;
     onLike: () => void;
     onDislike: () => void;
 }
@@ -21,13 +21,18 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
     const rotate = useTransform(x, [-200, 200], [-20, 20]);
     const opacity = useTransform(x, [-250, -150, 0, 150, 250], [0, 1, 1, 1, 0]);
 
+    const genderLabels: Record<"hombre" | "mujer" | "otro", string> = {
+        hombre: "👨 Hombre",
+        mujer: "👩 Mujer",
+        otro: "🌈 Otro",
+    };
+
     /* ================================
        DRAG END LOGIC
     ================================= */
     const handleDragEnd = (_: any, info: any) => {
         const { offset } = info;
 
-        // 👆 Swipe UP → detalles
         if (offset.y < -120 && Math.abs(offset.x) < 80) {
             setShowDetails(true);
             x.set(0);
@@ -35,21 +40,18 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
             return;
         }
 
-        // ❤️ Like
         if (offset.x > 140) {
             setExitX(300);
             onLike();
             return;
         }
 
-        // ❌ Dislike
         if (offset.x < -140) {
             setExitX(-300);
             onDislike();
             return;
         }
 
-        // 🔄 Reset
         x.set(0);
         y.set(0);
     };
@@ -62,17 +64,11 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
         setCurrentImage((prev) => (prev + 1) % profile.images.length);
     };
 
-    /* ================================
-       BADGE COLORS
-    ================================= */
     const badges = {
         romance: { emoji: "💕", label: "Romance", color: "bg-gradient-1" },
         amistad: { emoji: "🤝", label: "Amistad", color: "bg-gradient-friendship" },
     };
 
-    /* ================================
-       CARD
-    ================================= */
     return (
         <>
             <motion.div
@@ -102,7 +98,7 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
 
                         <img
                             src={profile.images[currentImage]}
-                            alt={profile.name}
+                            alt={profile.imageAlt}
                             className="w-full h-full object-cover"
                             onClick={handleImageClick}
                         />
@@ -131,8 +127,8 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
                                         key={t}
                                         className={`${badges[t].color} text-white px-3 py-1 rounded-full text-sm font-semibold`}
                                     >
-                    {badges[t].emoji} {badges[t].label}
-                  </span>
+                                        {badges[t].emoji} {badges[t].label}
+                                    </span>
                                 ))}
                             </div>
 
@@ -153,8 +149,8 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
             </motion.div>
 
             {/* ================================
-         DETAILS MODAL
-      ================================= */}
+               DETAILS MODAL
+            ================================= */}
             <AnimatePresence>
                 {showDetails && (
                     <motion.div
@@ -193,6 +189,14 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
                                     ))}
                                 </div>
 
+                                {/* GÉNERO */}
+                                <div className="flex items-center gap-3 bg-muted p-4 rounded-lg">
+                                    <span className="text-primary text-lg">👤</span>
+                                    <span className="font-semibold">
+                                        {genderLabels[profile.gender]}
+                                    </span>
+                                </div>
+
                                 {/* Bio */}
                                 <section>
                                     <h4 className="font-bold mb-2">Sobre mí</h4>
@@ -220,8 +224,8 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
                                                 key={i}
                                                 className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm"
                                             >
-                        {i}
-                      </span>
+                                                {i}
+                                            </span>
                                         ))}
                                     </div>
                                 </div>

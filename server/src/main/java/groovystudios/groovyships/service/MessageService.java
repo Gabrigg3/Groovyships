@@ -1,12 +1,11 @@
 package groovystudios.groovyships.service;
 
-import groovystudios.groovyships.dto.NotificationEvent;
-import groovystudios.groovyships.dto.MessageEvent;
-import groovystudios.groovyships.dto.MessageResponse;
+import groovystudios.groovyships.dto.v0.NotificationEvent;
+import groovystudios.groovyships.dto.v0.MessageEvent;
+import groovystudios.groovyships.dto.v0.MessageResponse;
 import groovystudios.groovyships.model.Conversation;
 import groovystudios.groovyships.model.Message;
 import groovystudios.groovyships.model.MessageType;
-import groovystudios.groovyships.model.User;
 import groovystudios.groovyships.repository.MessageRepository;
 import org.springframework.stereotype.Service;
 

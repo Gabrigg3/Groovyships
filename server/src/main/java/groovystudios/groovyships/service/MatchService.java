@@ -90,13 +90,69 @@ public class MatchService {
     // --------------------------------------------------
     // SUGERENCIAS DE USUARIOS
     // --------------------------------------------------
+
+    private boolean isAgeCompatible(User candidate, List<Integer> ageRange) {
+        if (candidate.getEdad() == null || ageRange == null || ageRange.size() != 2) {
+            return true; // no filtrar si faltan datos
+        }
+        return candidate.getEdad() >= ageRange.get(0)
+                && candidate.getEdad() <= ageRange.get(1);
+    }
+
+    private boolean isLookingForCompatible(User current, User candidate) {
+        if (current.getLookingFor() == null || candidate.getLookingFor() == null) {
+            return true;
+        }
+
+        return current.getLookingFor().stream()
+                .anyMatch(candidate.getLookingFor()::contains);
+    }
+
+    private boolean isGenderCompatible(User current, User candidate) {
+
+        String candidateGender = candidate.getGeneroUsuario();
+        if (candidateGender == null) return true;
+
+        if (current.getLookingFor() == null) return true;
+
+        // ROMANCE
+        if (current.getLookingFor().contains("romance")) {
+            if (current.getGenerosRomance() != null &&
+                    !current.getGenerosRomance().isEmpty()) {
+                return current.getGenerosRomance().contains(candidateGender);
+            }
+        }
+
+        // AMISTAD
+        if (current.getLookingFor().contains("amistad")) {
+            if (current.getGenerosAmistad() != null &&
+                    !current.getGenerosAmistad().isEmpty()) {
+                return current.getGenerosAmistad().contains(candidateGender);
+            }
+        }
+
+        return true;
+    }
+
+    private int countCommonInterests(User a, User b) {
+        if (a.getIntereses() == null || b.getIntereses() == null) {
+            return 0;
+        }
+
+        return (int) a.getIntereses().stream()
+                .filter(b.getIntereses()::contains)
+                .count();
+    }
+
+
     public List<User> getSuggestions(String userId) {
 
-        User user = userRepo.findById(userId).orElseThrow();
+        User currentUser = userRepo.findById(userId).orElseThrow();
 
-        List<Match> interactions = matchRepo.findByUsuarioOrTarget(user, user);
+        // 1️⃣ Interacciones previas
+        List<Match> interactions = matchRepo.findByUsuarioOrTarget(currentUser, currentUser);
 
-        List<String> interactedUserIds = interactions.stream()
+        List<String> excludedUserIds = interactions.stream()
                 .map(match -> {
                     if (match.getUsuario().getId().equals(userId)) {
                         return match.getUsuario2().getId();
@@ -106,9 +162,33 @@ public class MatchService {
                 .filter(id -> id != null)
                 .toList();
 
+        //Preferencias del usuario actual
+        List<Integer> ageRange = currentUser.getRangoEdad(); // [min, max]
+        List<String> lookingFor = currentUser.getLookingFor();
+        List<String> generosRomance = currentUser.getGenerosRomance();
+        List<String> generosAmistad = currentUser.getGenerosAmistad();
+
         return userRepo.findAll().stream()
+
+                //no, yo
                 .filter(u -> !u.getId().equals(userId))
-                .filter(u -> !interactedUserIds.contains(u.getId()))
+
+                //no, ya interactuados
+                .filter(u -> !excludedUserIds.contains(u.getId()))
+
+                //edad compatible
+                .filter(u -> isAgeCompatible(u, ageRange))
+
+                // lookingFor compatible
+                .filter(u -> isLookingForCompatible(currentUser, u))
+
+                // género compatible según modo
+                .filter(u -> isGenderCompatible(currentUser, u))
+                .sorted((u1, u2) -> {
+                    int common1 = countCommonInterests(currentUser, u1);
+                    int common2 = countCommonInterests(currentUser, u2);
+                    return Integer.compare(common2, common1); // DESC
+                })
                 .toList();
     }
 
@@ -127,6 +207,7 @@ public class MatchService {
                 "id", u.getId(),
                 "nombre", u.getNombre(),
                 "edad", u.getEdad(),
+                "gender", u.getGeneroUsuario(),
                 "imagenes", u.getImagenes(),
                 "lookingFor", u.getLookingFor()
         );

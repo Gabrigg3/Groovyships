@@ -1,6 +1,6 @@
 package groovystudios.groovyships.service;
 
-import groovystudios.groovyships.dto.ConversationResponse;
+import groovystudios.groovyships.dto.v0.ConversationResponse;
 import groovystudios.groovyships.model.Conversation;
 import groovystudios.groovyships.model.Message;
 import groovystudios.groovyships.model.User;

@@ -1,7 +1,7 @@
 package groovystudios.groovyships.service;
 
-import groovystudios.groovyships.dto.MessageEvent;
-import groovystudios.groovyships.dto.NotificationEvent;
+import groovystudios.groovyships.dto.v0.MessageEvent;
+import groovystudios.groovyships.dto.v0.NotificationEvent;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 

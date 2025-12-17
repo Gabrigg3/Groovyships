@@ -35,11 +35,13 @@ api.interceptors.response.use(
 
             try {
                 // pedir nuevo access token
-                const refreshRes = await axios.post(
-                    "http://localhost:8080/auth/refresh",
-                    {}, // la cookie HttpOnly ya contiene el refreshToken
-                    { withCredentials: true }
-                );
+                const refreshApi = axios.create({
+                    baseURL: "http://localhost:8080",
+                    withCredentials: true,
+                });
+
+                const refreshRes = await refreshApi.post("/auth/v0/refresh");
+
 
                 const newAccess = refreshRes.data.accessToken;
 

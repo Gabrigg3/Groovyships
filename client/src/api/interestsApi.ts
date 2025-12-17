@@ -2,7 +2,7 @@
 import axios from "axios";
 import type { Interes } from "@/models/Interes";
 
-const API_URL = "http://localhost:8080/api/interests";
+const API_URL = "http://localhost:8080/api/v0/interests";
 
 export const interestsApi = {
     async getAll(): Promise<Interes[]> {

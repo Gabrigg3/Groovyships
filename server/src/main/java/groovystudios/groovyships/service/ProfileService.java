@@ -1,7 +1,7 @@
 package groovystudios.groovyships.service;
 
-import groovystudios.groovyships.dto.ProfileResponse;
-import groovystudios.groovyships.dto.ProfileUpdateRequest;
+import groovystudios.groovyships.dto.v0.ProfileResponse;
+import groovystudios.groovyships.dto.v0.ProfileUpdateRequest;
 import groovystudios.groovyships.model.Conversation;
 import groovystudios.groovyships.model.User;
 import groovystudios.groovyships.repository.ConversationRepository;

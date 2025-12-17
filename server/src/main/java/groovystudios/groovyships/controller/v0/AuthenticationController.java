@@ -1,5 +1,6 @@
-package groovystudios.groovyships.controller;
+package groovystudios.groovyships.controller.v0;
 
+import groovystudios.groovyships.dto.v0.*;
 import groovystudios.groovyships.model.RefreshToken;
 import groovystudios.groovyships.model.User;
 import groovystudios.groovyships.service.AuthenticationService;
@@ -8,12 +9,10 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
-
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/auth/v0")
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class AuthenticationController {
 
@@ -23,61 +22,72 @@ public class AuthenticationController {
         this.authService = authService;
     }
 
-
+    // REGISTER
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> register(@RequestBody User user) {
+    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
 
-        User saved =
-        authService.register(user);
+        User user = new User();
+        user.setNombre(request.nombre());
+        user.setEmail(request.email());
+        user.setTelefono(request.telefono());
+        user.setPassword(request.password());
+
+        user.setEdad(request.edad());
+        user.setOcupacion(request.ocupacion());
+        user.setUbicacion(request.ubicacion());
+        user.setBiografia(request.biografia());
+        user.setGeneroUsuario(request.generoUsuario());
+
+        user.setImagenes(request.imagenes());
+        user.setIntereses(request.intereses());
+        user.setLookingFor(request.lookingFor());
+        user.setGenerosRomance(request.generosRomance());
+        user.setGenerosAmistad(request.generosAmistad());
+        user.setRangoEdad(request.rangoEdad());
+
+        User saved = authService.register(user);
+
         String accessToken = authService.generateAccessToken(saved);
         RefreshToken refreshToken = authService.generateRefreshToken(saved);
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken.getToken())
                 .httpOnly(true)
-                .secure(false)
-                .path("/auth/refresh")
+                .secure(false) // ⚠️ true en producción con HTTPS
+                .path("/auth/v0/refresh") // 🔴 CORREGIDO (ver explicación abajo)
                 .maxAge(7 * 24 * 60 * 60)
                 .sameSite("Lax")
                 .build();
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(Map.of(
-                        "accessToken", accessToken,
-                        "userId", saved.getId()
-                ));
-
+                .body(new AuthResponse(accessToken, saved.getId()));
     }
 
+    // LOGIN
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> body) {
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
 
-        String email = body.get("email");
-        String password = body.get("password");
-
-        User logged = authService.login(email, password);
+        User logged = authService.login(request.email(), request.password());
 
         String accessToken = authService.generateAccessToken(logged);
         RefreshToken refreshToken = authService.generateRefreshToken(logged);
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken.getToken())
                 .httpOnly(true)
-                .secure(false) // TRUE SI USAS HTTPS
-                .path("/auth/refresh")
+                .secure(false)
+                .path("/auth/v0/refresh")
                 .maxAge(7 * 24 * 60 * 60)
                 .sameSite("Lax")
                 .build();
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(Map.of(
-                        "accessToken", accessToken,
-                        "userId", logged.getId()
-                ));
+                .body(new AuthResponse(accessToken, logged.getId()));
     }
 
+    // REFRESH
     @PostMapping("/refresh")
-    public ResponseEntity<Map<String, String>> refresh(
+    public ResponseEntity<RefreshResponse> refresh(
             @CookieValue("refreshToken") String refreshToken
     ) {
         RefreshToken stored = authService.refreshToken(refreshToken);
@@ -85,19 +95,13 @@ public class AuthenticationController {
 
         String newAccess = authService.generateAccessToken(user);
 
-        return ResponseEntity.ok(
-                Map.of(
-                        "accessToken", newAccess
-                )
-        );
+        return ResponseEntity.ok(new RefreshResponse(newAccess));
     }
 
+    // LOGOUT (v0 legacy)
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestBody Map<String, String> body) {
-
-        String userId = body.get("userId");
-        authService.logout(userId);
-
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> logout(@RequestBody LogoutRequest request) {
+        authService.logout(request.userId());
+        return ResponseEntity.noContent().build();
     }
 }

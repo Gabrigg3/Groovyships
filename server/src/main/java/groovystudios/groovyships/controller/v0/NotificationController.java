@@ -1,7 +1,6 @@
-package groovystudios.groovyships.controller;
+package groovystudios.groovyships.controller.v0;
 
-import groovystudios.groovyships.dto.NotificationResponse;
-import groovystudios.groovyships.model.User;
+import groovystudios.groovyships.dto.v0.NotificationResponse;
 import groovystudios.groovyships.service.NotificationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -10,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/api/v0/notifications")
 public class NotificationController {
 
     private final NotificationService notificationService;

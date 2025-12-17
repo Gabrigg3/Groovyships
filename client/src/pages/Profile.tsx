@@ -3,6 +3,8 @@ import { profileApi } from "@/api/profileApi";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { uploadMedia } from "@/api/mediaApi";
+import { interestsApi } from "@/api/interestsApi";
+import type { Interes } from "@/models/Interes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     AlertDialog,
@@ -150,6 +152,8 @@ export function Profile() {
             alert("No se pudo eliminar la cuenta");
         }
     };
+
+
 
     const genderLabels: Record<Gender, string> = {
         hombre: "👨 Hombre",
@@ -778,7 +782,7 @@ export function Profile() {
                             <Trash2 className="w-8 h-8 text-destructive" strokeWidth={1.5} />
                         </div>
                         <h3 className="text-foreground text-xl font-bold font-sans mb-2">
-                            Zona de Peligro
+                            ¿Deseas eliminar la cuenta?
                         </h3>
                         <p className="text-muted-foreground font-body mb-6">
                             Una vez que elimines tu cuenta, no hay vuelta atrás. Por favor, asegúrate.

@@ -6,6 +6,8 @@ import groovystudios.groovyships.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -26,5 +28,12 @@ public class ProfileController {
     ) {
         return profileService.updateMyProfile(authentication, request);
     }
+
+    @DeleteMapping("/me")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteMyAccount(Authentication authentication) {
+        profileService.deleteMyAccount(authentication);
+    }
+
 }
 

@@ -18,6 +18,7 @@ export function TopNav() {
     const navigate = useNavigate();
     const userId = useAuthStore((s) => s.userId);
     const unreadCount = useNotificationStore((s) => s.unreadCount);
+    const logout = useAuthStore((s) => s.logout);
 
     const [user, setUser] = useState<UserLight | null>(null);
 
@@ -113,8 +114,8 @@ export function TopNav() {
 
                             <DropdownMenuItem
                                 onClick={() => {
-                                    useAuthStore.getState().logout();
-                                    navigate('/login');
+                                    logout();
+                                    window.location.href = "/login";
                                 }}
                             >
                                 Cerrar sesión

@@ -18,4 +18,6 @@ public interface ConversationRepository
             String userAId,
             String userBId
     );
+
+    void deleteByUserAIdOrUserBId(String userAId, String userBId);
 }

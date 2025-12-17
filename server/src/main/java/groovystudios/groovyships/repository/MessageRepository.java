@@ -4,7 +4,6 @@ import groovystudios.groovyships.model.Message;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
-
 import java.util.Optional;
 
 public interface MessageRepository
@@ -15,4 +14,8 @@ public interface MessageRepository
     Optional<Message> findTopByConversationIdOrderBySentAtDesc(
             String conversationId
     );
+
+    void deleteByConversationId(String conversationId);
+
+    void deleteByConversationIdIn(List<String> conversationIds);
 }

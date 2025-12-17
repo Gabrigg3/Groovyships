@@ -66,4 +66,20 @@ export const profileApi = {
     updateMe(data: ProfileUpdateRequest): Promise<ProfileResponse> {
         return api.put("/api/profile/me", data).then(res => res.data);
     },
+
+
+    deleteMe(): Promise<void> {
+        const token = localStorage.getItem("accessToken");
+        console.log("TOKEN EN DELETE:", token);
+
+        return fetch("http://localhost:8080/api/profile/me", {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }).then((res) => {
+            if (!res.ok) throw new Error("Error eliminando cuenta");
+        });
+    }
+
 };

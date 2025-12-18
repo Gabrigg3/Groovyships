@@ -1,8 +1,7 @@
 import { apiHttp } from "@/api/axiosConfig";
 
-/* ================================
-   TIPOS (IGUALES AL BACKEND)
-================================ */
+
+//TIPOS (IGUALES AL BACKEND)
 
 export type Gender = "hombre" | "mujer" | "otro";
 export type LookingFor = "romance" | "amistad";
@@ -46,10 +45,7 @@ export type ProfileUpdateRequest = {
     photos?: string[];
 };
 
-/* ================================
-   API
-================================ */
-
+//API
 export const profileApi = {
     /**
      * Obtener mi perfil

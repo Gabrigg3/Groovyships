@@ -59,9 +59,8 @@ export function RegisterStep2() {
         return Object.keys(newErrors).length === 0;
     };
 
-    // -------------------------------------------------------
-    // FOTO
-    // -------------------------------------------------------
+
+    //FOTO
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -73,9 +72,8 @@ export function RegisterStep2() {
         reader.readAsDataURL(file);
     };
 
-    // -------------------------------------------------------
-    // SUBMIT
-    // -------------------------------------------------------
+
+    //SUBMIT
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateForm()) return;
@@ -84,9 +82,8 @@ export function RegisterStep2() {
         navigate('/register/step3');
     };
 
-    // -------------------------------------------------------
-    // RENDER
-    // -------------------------------------------------------
+
+    //RENDER
     return (
         <div className="min-h-screen bg-gradient-1 flex items-center justify-center p-4">
             <Card className="w-full max-w-md bg-card text-card-foreground border-0 shadow-2xl p-8 lg:p-10">
@@ -108,7 +105,7 @@ export function RegisterStep2() {
                         Completa tu Perfil
                     </h1>
                     <p className="text-muted-foreground text-center font-body">
-                        Paso 2 de 4: Información personal
+                        Paso 2 de 5: Información personal
                     </p>
                 </div>
 

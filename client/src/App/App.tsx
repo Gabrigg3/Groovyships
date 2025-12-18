@@ -24,7 +24,7 @@ import { ProtectedLayout } from "@/layouts/ProtectedLayout";
 import { useBootstrapAuth } from "@/hooks/useBootstrapAuth";
 
 function AppRoutes() {
-    // ✅ bootstrap DENTRO del Router
+
     useBootstrapAuth();
 
     return (

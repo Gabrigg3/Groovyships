@@ -21,6 +21,5 @@ public class NotificationResponse {
         this.createdAt = n.getCreatedAt();
     }
 
-    // getters
 }
 

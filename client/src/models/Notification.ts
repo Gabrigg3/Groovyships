@@ -6,18 +6,18 @@ export type NotificationType =
 export interface Notification {
     id: string;
 
-    // Usuario que recibe la notificación
+    //Usuario que recibe la notificación
     userId: string;
 
-    // Tipo de notificación
+    //Tipo de notificación
     type: NotificationType;
 
-    // Datos extra (matchId, otherUserId, etc.)
+    //Datos extra (matchId, otherUserId...)
     payload: Record<string, any>;
 
-    // Si está leída
+    //Si está leída
     read: boolean;
 
-    // Fecha ISO que viene del backend
+    //Fecha ISO que viene del backend
     createdAt: string;
 }

@@ -28,19 +28,18 @@ public class MessageService {
         this.webSocketService = webSocketService;
     }
 
-    // --------------------------------------------------
-    // ENVIAR MENSAJE + EMITIR WEBSOCKET
-    // --------------------------------------------------
+
+    //ENVIAR MENSAJE + EMITIR WEBSOCKET
     public Message sendMessage(
             String conversationId,
             String senderId,
             MessageType type,
             String content
     ) {
-        // 🔒 Validar acceso a la conversación
+        //Validar acceso a la conversación
         Conversation conversation = conversationService.getConversationById(conversationId, senderId);
 
-        // 🛑 Validaciones básicas
+        //Validaciones básicas
         if (type == null) {
             throw new RuntimeException("Tipo de mensaje obligatorio");
         }
@@ -49,7 +48,7 @@ public class MessageService {
             throw new RuntimeException("El contenido no puede estar vacío");
         }
 
-        // 💾 Guardar mensaje
+        //Guardar mensaje
         Message message = new Message(
                 conversationId,
                 senderId,
@@ -59,7 +58,7 @@ public class MessageService {
 
         Message saved = messageRepository.save(message);
 
-        // 🔁 Emitir mensaje en tiempo real
+        //Emitir mensaje en tiempo real
         MessageResponse response = MessageResponse.from(saved);
 
         webSocketService.sendMessageToConversation(
@@ -67,7 +66,7 @@ public class MessageService {
                 new MessageEvent(conversationId, response)
         );
 
-        // 🔔 Notificación al otro usuario
+        //Notificación al otro usuario
         String otherUserId = conversation.getUserAId().equals(senderId)
                 ? conversation.getUserBId()
                 : conversation.getUserAId();
@@ -84,12 +83,10 @@ public class MessageService {
         return saved;
     }
 
-    // --------------------------------------------------
-    // OBTENER MENSAJES (REST)
-    // --------------------------------------------------
+    //OBTENER MENSAJES (REST)
     public List<Message> getMessages(String conversationId, String userId) {
 
-        // 🔒 Validar acceso
+        //Validar acceso
         conversationService.getConversationById(
                 conversationId,
                 userId

@@ -18,13 +18,6 @@ public class UserController {
 
 
 
-    //Endpoint para crear un nuevo usuario
-    @PostMapping
-    public UserResponse createUser(@RequestBody User user) {
-        User saved = userRepository.save(user);
-        return UserMapper.toResponse(saved);
-    }
-
     //Endpoint para obtener todos los usuarios
     @GetMapping
     public List<UserResponse> getUsers() {

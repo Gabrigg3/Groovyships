@@ -12,7 +12,7 @@ export function useNotificationSocket() {
     const clientRef = useRef<Client | null>(null);
 
     useEffect(() => {
-        // 🔴 SIN TOKEN → NO SOCKET
+
         if (!accessToken) {
             if (clientRef.current) {
                 clientRef.current.deactivate();
@@ -21,7 +21,6 @@ export function useNotificationSocket() {
             return;
         }
 
-        // 🟢 YA CONECTADO
         if (clientRef.current) return;
 
         const client = new Client({
@@ -32,23 +31,23 @@ export function useNotificationSocket() {
             },
             reconnectDelay: 5000,
             debug: (msg) => {
-                // console.log("[WS]", msg);
+
             },
         });
 
         client.onConnect = () => {
-            console.log("🟢 WebSocket conectado");
+            console.log("+ WebSocket conectado");
 
             client.subscribe("/user/queue/notifications", (message) => {
-                console.log("📩 WS RAW MESSAGE", message.body);
+                console.log("+ WS RAW MESSAGE", message.body);
                 const notification = JSON.parse(message.body);
-                console.log("📩 WS PARSED", notification);
+                console.log("+ WS PARSED", notification);
                 addNotification(notification);
             });
         };
 
         client.onStompError = (frame) => {
-            console.error("❌ STOMP error", frame);
+            console.error("+ STOMP error", frame);
         };
 
         client.activate();

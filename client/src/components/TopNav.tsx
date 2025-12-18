@@ -14,18 +14,17 @@ import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 export function TopNav() {
     const navigate = useNavigate();
 
-    // AUTH
+    //AUTH
     const { userId, clearSession } = useAuthStore();
 
-    // USER
+    //USER
     const { user, fetchMe, clearUser } = useUserStore();
 
-    // NOTIFICATIONS
+    //NOTIFICATIONS
     const unreadCount = useNotificationStore((s) => s.unreadCount);
 
-    // ---------------------------------------------
-    // CARGAR / REFRESCAR USUARIO LOGUEADO
-    // ---------------------------------------------
+
+    //CARGAR / REFRESCAR USUARIO LOGUEADO
     useEffect(() => {
         if (!userId) {
             clearUser();
@@ -35,9 +34,8 @@ export function TopNav() {
         fetchMe(userId);
     }, [userId, fetchMe, clearUser]);
 
-    // ---------------------------------------------
-    // LOGOUT
-    // ---------------------------------------------
+
+    //LOGOUT
     const handleLogout = async () => {
         try {
             if (userId) {

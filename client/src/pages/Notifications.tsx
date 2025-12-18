@@ -7,9 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { useNotificationStore } from "@/store/notificationStore";
 import type { Notification } from "@/models/Notification";
 
-/* ---------------------------------------
-   UI HELPERS (MISMA ESTÉTICA)
---------------------------------------- */
+
+//UI HELPERS (MISMA ESTÉTICA)
 function getNotificationIcon(type: Notification["type"]) {
     switch (type) {
         case "MATCH":
@@ -57,9 +56,8 @@ function getNotificationBgColor(type: Notification["type"]) {
     }
 }
 
-/* ---------------------------------------
-   COMPONENT
---------------------------------------- */
+
+//COMPONENT
 export function Notifications() {
     const navigate = useNavigate();
 

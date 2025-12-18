@@ -61,10 +61,10 @@ export function RegisterStep1() {
 
         if (!validateForm()) return;
 
-        // 1️⃣ Guardamos Step1 para Step2
+        //Guardamos Step1 para Step2
         localStorage.setItem("registerStep1", JSON.stringify(formData));
 
-        // 2️⃣ Pasamos a Step2
+        //Pasamos a Step2
         navigate("/register/step2");
     };
 
@@ -86,7 +86,7 @@ export function RegisterStep1() {
                     </div>
                     <h1 className="text-foreground text-3xl font-bold font-sans mb-2">Crear Cuenta</h1>
                     <p className="text-muted-foreground text-center font-body">
-                        Paso 1 de 4: Información básica
+                        Paso 1 de 5: Información básica
                     </p>
                 </div>
 

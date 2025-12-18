@@ -2,11 +2,12 @@ package groovystudios.groovyships.repository;
 
 import groovystudios.groovyships.model.RefreshToken;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;
 
 //Para gestionar los RefreshTokens
-public interface RefreshTokenRepository extends MongoRepository<RefreshToken, String> {
+public interface RefreshTokenRepository extends CrudRepository<RefreshToken, String> {
 
     Optional<RefreshToken> findByToken(String token); //Buscar un token por su cadena opaca
 

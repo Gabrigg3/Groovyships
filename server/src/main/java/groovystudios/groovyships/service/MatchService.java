@@ -6,6 +6,7 @@ import groovystudios.groovyships.model.NotificationType;
 import groovystudios.groovyships.model.User;
 import groovystudios.groovyships.repository.ConversationRepository;
 import groovystudios.groovyships.repository.MatchRepository;
+import groovystudios.groovyships.repository.MessageRepository;
 import groovystudios.groovyships.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.util.Optional;
 @Service
 public class MatchService {
 
+    private final MessageRepository messageRepo;
     private final MatchRepository matchRepo;
     private final UserRepository userRepo;
     private final ConversationRepository conversationRepo;
@@ -28,12 +30,14 @@ public class MatchService {
     public MatchService(
             MatchRepository matchRepo,
             UserRepository userRepo, ConversationRepository conversationRepo,
-            NotificationService notificationService
+            NotificationService notificationService,
+            MessageRepository messageRepo
     ) {
         this.matchRepo = matchRepo;
         this.userRepo = userRepo;
         this.conversationRepo = conversationRepo;
         this.notificationService = notificationService;
+        this.messageRepo = messageRepo;
     }
 
     // --------------------------------------------------
@@ -50,31 +54,30 @@ public class MatchService {
     public Match interact(String userId, String targetId, String action) {
 
         System.out.println("==================================================");
-        System.out.println("👉 interact()");
+        System.out.println("+ interact()");
         System.out.println("   userId    = " + userId);
         System.out.println("   targetId  = " + targetId);
         System.out.println("   action    = " + action);
         System.out.println("==================================================");
 
-        System.out.println("🧩 notificationService class = "
+        System.out.println("+ notificationService class = "
                 + notificationService.getClass().getName());
 
 
         User user = userRepo.findById(userId).orElseThrow();
         User target = userRepo.findById(targetId).orElseThrow();
 
-        System.out.println("✔ Usuarios cargados");
+        System.out.println("+ Usuarios cargados");
         System.out.println("   user.id   = " + user.getId());
         System.out.println("   target.id = " + target.getId());
 
-        // --------------------------------------------------
-        // 1️⃣ INTERACCIÓN USER → TARGET
-        // --------------------------------------------------
+
+        //INTERACCIÓN USER → TARGET
         Optional<Match> existingOpt =
                 matchRepo.findByUsuarioAndTarget(user, target);
 
         System.out.println("--------------------------------------------------");
-        System.out.println("🔍 existing interaction user → target");
+        System.out.println("+ existing interaction user → target");
         System.out.println("   exists = " + existingOpt.isPresent());
 
         Match interaction;
@@ -94,46 +97,42 @@ public class MatchService {
 
 
 
-        // --------------------------------------------------
-        // 2️⃣ INTERACCIÓN INVERSA TARGET → USER
-        // --------------------------------------------------
+        //INTERACCIÓN INVERSA TARGET → USER
         Optional<Match> reverseOpt =
                 matchRepo.findByUsuarioAndTarget(target, user);
 
         System.out.println("--------------------------------------------------");
-        System.out.println("🔍 reverse interaction target → user");
+        System.out.println("+ reverse interaction target → user");
         System.out.println("   exists = " + reverseOpt.isPresent());
 
         if (reverseOpt.isPresent()) {
             System.out.println("   reverse.status1 = " + reverseOpt.get().getStatus1());
         }
 
-        // --------------------------------------------------
-        // 3️⃣ CÁLCULO DE MATCH MUTUO
-        // --------------------------------------------------
+
+        //CÁLCULO DE MATCH MUTUO
         boolean actionIsLike = "LIKE".equals(action);
         boolean reverseExists = reverseOpt.isPresent();
         boolean reverseIsLike = reverseExists &&
                 "LIKE".equals(reverseOpt.get().getStatus1());
 
         System.out.println("--------------------------------------------------");
-        System.out.println("🧠 mutualLike evaluation");
+        System.out.println("+ mutualLike evaluation");
         System.out.println("   actionIsLike   = " + actionIsLike);
         System.out.println("   reverseExists  = " + reverseExists);
         System.out.println("   reverseIsLike  = " + reverseIsLike);
 
         boolean mutualLike = actionIsLike && reverseExists && reverseIsLike;
 
-        System.out.println("   👉 mutualLike = " + mutualLike);
+        System.out.println("   + mutualLike = " + mutualLike);
 
         if (!mutualLike) {
-            System.out.println("❌ NO MATCH MUTUO → return interaction");
+            System.out.println("+ NO MATCH MUTUO → return interaction");
             return interaction;
         }
 
-        // --------------------------------------------------
-        // 4️⃣ COMPROBACIÓN DE CONVERSACIÓN
-        // --------------------------------------------------
+
+        //COMPROBACIÓN DE CONVERSACIÓN
         boolean conversationExists =
                 conversationRepo
                         .findByUserAIdAndUserBId(user.getId(), target.getId())
@@ -143,29 +142,28 @@ public class MatchService {
                         .isPresent();
 
         System.out.println("--------------------------------------------------");
-        System.out.println("💬 conversationExists = " + conversationExists);
+        System.out.println("+ conversationExists = " + conversationExists);
 
         if (conversationExists) {
-            System.out.println("⚠️ Match ya procesado → return interaction");
+            System.out.println("+️ Match ya procesado → return interaction");
             return interaction;
         }
 
-        // --------------------------------------------------
-        // 5️⃣ MATCH REAL
-        // --------------------------------------------------
-        System.out.println("🔥🔥🔥 MATCH MUTUO REAL 🔥🔥🔥");
+
+        //MATCH REAL
+        System.out.println("+ MATCH MUTUO REAL +");
 
         getOrCreateConversation(user.getId(), target.getId());
-        System.out.println("✔ Conversación creada");
+        System.out.println("+ Conversación creada");
 
-        System.out.println("🔔 creando notificación para TARGET");
+        System.out.println("+ creando notificación para TARGET");
         notificationService.createNotification(
                 target.getId(),
                 NotificationType.MATCH,
                 Map.of("profile", buildUserLight(user))
         );
 
-        System.out.println("🔔 creando notificación para USER");
+        System.out.println("+ creando notificación para USER");
         notificationService.createNotification(
                 user.getId(),
                 NotificationType.MATCH,
@@ -173,19 +171,14 @@ public class MatchService {
         );
 
         System.out.println("==================================================");
-        System.out.println("✔ interact() FIN");
+        System.out.println("+ interact() FIN");
         System.out.println("==================================================");
 
         return interaction;
     }
 
 
-
-
-    // --------------------------------------------------
-    // SUGERENCIAS DE USUARIOS
-    // --------------------------------------------------
-
+    //SUGERENCIAS DE USUARIOS
     private boolean isAgeCompatible(User candidate, List<Integer> ageRange) {
         if (candidate.getEdad() == null || ageRange == null || ageRange.size() != 2) {
             return true; // no filtrar si faltan datos
@@ -206,27 +199,38 @@ public class MatchService {
     private boolean isGenderCompatible(User current, User candidate) {
 
         String candidateGender = candidate.getGeneroUsuario();
+
+        //Si no sabemos el género del candidato, no filtramos
         if (candidateGender == null) return true;
 
-        if (current.getLookingFor() == null) return true;
+        //Si el usuario no tiene preferencias, no filtramos
+        if (current.getLookingFor() == null || current.getLookingFor().isEmpty()) {
+            return true;
+        }
 
-        // ROMANCE
-        if (current.getLookingFor().contains("romance")) {
-            if (current.getGenerosRomance() != null &&
-                    !current.getGenerosRomance().isEmpty()) {
-                return current.getGenerosRomance().contains(candidateGender);
+        boolean compatible = false;
+
+        //ROMANCE
+        if (current.getLookingFor().contains("romance")
+                && current.getGenerosRomance() != null
+                && !current.getGenerosRomance().isEmpty()) {
+
+            if (current.getGenerosRomance().contains(candidateGender)) {
+                compatible = true;
             }
         }
 
-        // AMISTAD
-        if (current.getLookingFor().contains("amistad")) {
-            if (current.getGenerosAmistad() != null &&
-                    !current.getGenerosAmistad().isEmpty()) {
-                return current.getGenerosAmistad().contains(candidateGender);
+        //AMISTAD
+        if (current.getLookingFor().contains("amistad")
+                && current.getGenerosAmistad() != null
+                && !current.getGenerosAmistad().isEmpty()) {
+
+            if (current.getGenerosAmistad().contains(candidateGender)) {
+                compatible = true;
             }
         }
 
-        return true;
+        return compatible;
     }
 
     private int countCommonInterests(User a, User b) {
@@ -244,7 +248,7 @@ public class MatchService {
 
         User currentUser = userRepo.findById(userId).orElseThrow();
 
-        // 1️⃣ Interacciones previas
+        //Interacciones previas
         List<Match> interactions = matchRepo.findByUsuarioOrTarget(currentUser, currentUser);
 
         List<String> excludedUserIds = interactions.stream()
@@ -265,19 +269,15 @@ public class MatchService {
 
         return userRepo.findAll().stream()
 
-                //no, yo
                 .filter(u -> !u.getId().equals(userId))
 
-                //no, ya interactuados
                 .filter(u -> !excludedUserIds.contains(u.getId()))
 
-                //edad compatible
                 .filter(u -> isAgeCompatible(u, ageRange))
 
-                // lookingFor compatible
                 .filter(u -> isLookingForCompatible(currentUser, u))
 
-                // género compatible según modo
+                //género compatible según modo
                 .filter(u -> isGenderCompatible(currentUser, u))
                 .sorted((u1, u2) -> {
                     int common1 = countCommonInterests(currentUser, u1);
@@ -287,16 +287,14 @@ public class MatchService {
                 .toList();
     }
 
-    // --------------------------------------------------
-    // TODOS LOS MATCHES (ADMIN / DEBUG)
-    // --------------------------------------------------
+
+    //TODOS LOS MATCHES (ADMIN / DEBUG)
     public List<Match> getAllMatches() {
         return matchRepo.findAll();
     }
 
-    // --------------------------------------------------
-    // CONSTRUCCIÓN DE UserLight PARA NOTIFICACIONES
-    // --------------------------------------------------
+
+    //CONSTRUCCIÓN DE UserLight PARA NOTIFICACIONES
     private Map<String, Object> buildUserLight(User u) {
         Map<String, Object> map = new HashMap<>();
         map.put("id", u.getId());
@@ -310,9 +308,7 @@ public class MatchService {
 
 
 
-    // --------------------------------------------------
-    // CREACIÓN DE CONVERSACIONES AL HACER MATCH
-    // --------------------------------------------------
+    //CREACIÓN DE CONVERSACIONES AL HACER MATCH
     public Conversation getOrCreateConversation(String userAId, String userBId) {
 
         return conversationRepo
@@ -323,4 +319,37 @@ public class MatchService {
                     return conversationRepo.save(c);
                 });
     }
+
+
+
+    public void breakMatch(String userId, String targetId) {
+
+        User user = userRepo.findById(userId).orElseThrow();
+        User target = userRepo.findById(targetId).orElseThrow();
+
+        // 1. Cambiar LIKE -> DISLIKE (user → target)
+        matchRepo.findByUsuarioAndTarget(user, target)
+                .ifPresent(match -> {
+                    match.setStatus1("DISLIKE");
+                    matchRepo.save(match);
+                });
+
+        // 2. Eliminar interacción inversa (target → user)
+        matchRepo.findByUsuarioAndTarget(target, user)
+                .ifPresent(matchRepo::delete);
+
+        // 3. Buscar conversación
+        conversationRepo
+                .findByUserAIdAndUserBId(userId, targetId)
+                .or(() -> conversationRepo.findByUserAIdAndUserBId(targetId, userId))
+                .ifPresent(conversation -> {
+
+                    // 4. Borrar mensajes
+                    messageRepo.deleteByConversationId(conversation.getId());
+
+                    // 5. Borrar conversación
+                    conversationRepo.delete(conversation);
+                });
+    }
+
 }

@@ -26,14 +26,14 @@ public class AuthenticationController {
     private ResponseCookie buildRefreshCookie(String token) {
         return ResponseCookie.from("refreshToken", token)
                 .httpOnly(true)
-                .secure(false)              // true en prod
-                .path("/")                  // 🔑 SIEMPRE /
+                .secure(false)
+                .path("/")
                 .maxAge(7 * 24 * 60 * 60)
-                .sameSite("Lax")           // 🔑 SPA cross-site
+                .sameSite("Lax")
                 .build();
     }
 
-    // REGISTER
+    //REGISTER
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
 
@@ -69,7 +69,7 @@ public class AuthenticationController {
 
     }
 
-    // LOGIN
+    //LOGIN
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
 
@@ -86,7 +86,7 @@ public class AuthenticationController {
 
     }
 
-    // REFRESH
+    //REFRESH
     @PostMapping("/refresh")
     public ResponseEntity<RefreshResponse> refresh(
             @CookieValue("refreshToken") String refreshToken
@@ -107,8 +107,8 @@ public class AuthenticationController {
         ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
                 .secure(false)
-                .path("/")          // 🔑 MISMO PATH
-                .maxAge(0)          // 🔑 BORRAR
+                .path("/")
+                .maxAge(0)
                 .sameSite("Lax")
                 .build();
 

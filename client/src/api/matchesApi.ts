@@ -47,4 +47,8 @@ export const matchesApi = {
     async dislike(userId: string, targetId: string): Promise<Match> {
         return (await apiHttp.post<Match>(`${API_URL}/${userId}/dislike/${targetId}`)).data;
     },
+
+    async breakMatch(userId: string, targetId: string): Promise<void> {
+        await apiHttp.delete(`/api/v0/matches/${userId}/break/${targetId}`);
+    },
 };

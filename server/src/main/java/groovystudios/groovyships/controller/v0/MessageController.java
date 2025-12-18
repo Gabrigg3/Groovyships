@@ -20,9 +20,7 @@ public class MessageController {
         this.messageService = messageService;
     }
 
-    // ---------------------------------------
-    // ENVIAR MENSAJE
-    // ---------------------------------------
+    //ENVIAR MENSAJE
     @PostMapping
     public ResponseEntity<MessageResponse> sendMessage(
             @PathVariable String conversationId,
@@ -42,9 +40,7 @@ public class MessageController {
     }
 
 
-    // ---------------------------------------
-    // OBTENER MENSAJES
-    // ---------------------------------------
+    //OBTENER MENSAJES
     @GetMapping
     public ResponseEntity<List<MessageResponse>> getMessages(
             @PathVariable String conversationId,

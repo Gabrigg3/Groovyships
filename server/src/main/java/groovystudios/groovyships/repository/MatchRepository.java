@@ -16,4 +16,6 @@ public interface MatchRepository extends MongoRepository<Match, String> {
     //Buscar un match específico entre dos usuarios
     Optional<Match> findByUsuarioAndTarget(User usuario, User target);
 
+    void deleteByUsuarioAndTarget(User usuario, User target);
+
 }

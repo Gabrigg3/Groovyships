@@ -1,31 +1,23 @@
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useNavigate } from 'react-router-dom';
-import {useEffect, useState} from "react";
-import {conversationsApi} from "@/api/conversationsApi";
+import { useEffect, useState } from "react";
+import { conversationsApi } from "@/api/conversationsApi";
 import { ConversationResponse } from "@/models/ConversationResponse";
-
-
+import { matchesApi } from "@/api/matchesApi";
+import { useAuthStore } from "@/store/authStore";
+import { Button } from "@/components/ui/button";
 
 export function Messages() {
     const navigate = useNavigate();
+    const userId = useAuthStore((s) => s.userId);
+
     const [conversations, setConversations] =
         useState<ConversationResponse[]>([]);
 
     useEffect(() => {
         conversationsApi.getMyConversations().then(setConversations);
     }, []);
-
-    const getAvatarBorderClass = (lookingFor: string[]) => {
-        if (lookingFor.includes('romance') && lookingFor.includes('friendship')) {
-            return 'ring-4 ring-gradient-both';
-        } else if (lookingFor.includes('romance')) {
-            return 'ring-4 ring-primary';
-        } else if (lookingFor.includes('friendship')) {
-            return 'ring-4 ring-friendship';
-        }
-        return '';
-    };
 
     return (
         <div className="pt-16 lg:pt-20 min-h-screen bg-background">
@@ -38,6 +30,7 @@ export function Messages() {
                     {conversations.map((chat) => (
                         <Card
                             key={chat.conversationId}
+                            className="flex items-center justify-between p-4 cursor-pointer"
                             onClick={() =>
                                 navigate(`/messages/${chat.conversationId}`, {
                                     state: {
@@ -48,16 +41,52 @@ export function Messages() {
                                 })
                             }
                         >
-                            <Avatar>
-                                <AvatarImage src={chat.otherUserImage ?? ""} />
-                                <AvatarFallback>{chat.otherUserName[0]}</AvatarFallback>
-                            </Avatar>
+                            {/* INFO DEL CHAT */}
+                            <div className="flex items-center gap-4">
+                                <Avatar>
+                                    <AvatarImage src={chat.otherUserImage ?? ""} />
+                                    <AvatarFallback>
+                                        {chat.otherUserName[0]}
+                                    </AvatarFallback>
+                                </Avatar>
 
-                            <h3>{chat.otherUserName}</h3>
-                            <p>{chat.lastMessage ?? "Di hola 👋"}</p>
+                                <div>
+                                    <h3 className="font-semibold">
+                                        {chat.otherUserName}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        {chat.lastMessage ?? "Di hola 👋"}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* BOTÓN ROMPER MATCH */}
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={async (e) => {
+                                    e.stopPropagation();
+
+                                    if (!userId) return;
+
+                                    await matchesApi.breakMatch(
+                                        userId,
+                                        chat.otherUserId
+                                    );
+
+                                    setConversations((prev) =>
+                                        prev.filter(
+                                            (c) =>
+                                                c.conversationId !==
+                                                chat.conversationId
+                                        )
+                                    );
+                                }}
+                            >
+                                Romper match
+                            </Button>
                         </Card>
                     ))}
-
                 </div>
             </div>
         </div>

@@ -1,5 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Heart, X, Star } from 'lucide-react';
+import { Info } from "lucide-react";
+
 
 interface ActionButtonsProps {
     onLike: () => void;
@@ -23,7 +25,7 @@ export function ActionButtons({ onLike, onDislike, onSuperLike }: ActionButtonsP
                 onClick={onSuperLike}
                 className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-tertiary text-tertiary-foreground hover:bg-tertiary/90 transition-all duration-200"
             >
-                <Star className="w-7 h-7 lg:w-8 lg:h-8" strokeWidth={2} fill="currentColor" />
+                <Info className="w-7 h-7 lg:w-8 lg:h-8" strokeWidth={2} fill="currentColor" />
             </Button>
 
             <Button

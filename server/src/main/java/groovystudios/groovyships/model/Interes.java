@@ -15,9 +15,6 @@ public class Interes {
     // Categoría a la que pertenece (ej: "Deportes", "Arte y Cultura")
     private String categoria;
 
-    // -------------------
-    // CONSTRUCTORES
-    // -------------------
 
     // Constructor vacío requerido por MongoDB
     public Interes() {
@@ -29,10 +26,8 @@ public class Interes {
         this.categoria = categoria;
     }
 
-    // -------------------
-    // GETTERS & SETTERS
-    // -------------------
 
+    // GETTERS & SETTERS
     public String getId() {
         return id;
     }

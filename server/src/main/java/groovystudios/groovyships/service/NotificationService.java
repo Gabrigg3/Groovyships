@@ -24,16 +24,14 @@ public class NotificationService {
         this.messagingTemplate = messagingTemplate;
     }
 
-    // --------------------------------------------------
     // CREAR NOTIFICACIÓN + EMITIR POR WEBSOCKET
-    // --------------------------------------------------
     public Notification createNotification(
             String userId,
             NotificationType type,
             Map<String, Object> payload
     ) {
 
-        System.out.println("🔔 createNotification()");
+        System.out.println("+ createNotification()");
         System.out.println("   userId = " + userId);
         System.out.println("   type = " + type);
         System.out.println("   payload = " + payload);
@@ -49,7 +47,7 @@ public class NotificationService {
 
         Notification saved = notificationRepo.save(notification);
 
-        // 🔔 Enviar notificación en tiempo real
+        //Enviar notificación en tiempo real
         messagingTemplate.convertAndSendToUser(
                 userId,
                 "/queue/notifications",
@@ -59,23 +57,19 @@ public class NotificationService {
         return saved;
     }
 
-    // --------------------------------------------------
-    // TODAS LAS NOTIFICACIONES DEL USUARIO
-    // --------------------------------------------------
+
+    //TODAS LAS NOTIFICACIONES DEL USUARIO
     public List<Notification> getNotificationsForUser(String userId) {
         return notificationRepo.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    // --------------------------------------------------
-    // SOLO NO LEÍDAS
-    // --------------------------------------------------
+
+    //SOLO NO LEÍDAS
     public List<Notification> getUnreadNotifications(String userId) {
         return notificationRepo.findByUserIdAndReadFalseOrderByCreatedAtDesc(userId);
     }
 
-    // --------------------------------------------------
-    // MARCAR UNA COMO LEÍDA
-    // --------------------------------------------------
+    //MARCAR UNA COMO LEÍDA
     public void markAsRead(String notificationId) {
         notificationRepo.findById(notificationId).ifPresent(notification -> {
             notification.setRead(true);
@@ -83,9 +77,8 @@ public class NotificationService {
         });
     }
 
-    // --------------------------------------------------
-    // MARCAR TODAS COMO LEÍDAS
-    // --------------------------------------------------
+
+    //MARCAR TODAS COMO LEÍDAS
     public void markAllAsRead(String userId) {
         List<Notification> notifications =
                 notificationRepo.findByUserIdAndReadFalse(userId);

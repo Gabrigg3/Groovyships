@@ -11,10 +11,11 @@ export function SwipeDeck() {
     const [cards, setCards] = useState<InfoCard[]>([]);
     const [filter, setFilter] = useState<"todos" | LookingFor>("todos");
     const [loading, setLoading] = useState(false);
+    const [showDetails, setShowDetails] = useState(false);
 
-    /* ================================
-       LOAD SUGGESTIONS
-    ================================= */
+
+
+    //LOAD SUGGESTIONS
     useEffect(() => {
         if (!userId) return;
 
@@ -25,9 +26,8 @@ export function SwipeDeck() {
             .finally(() => setLoading(false));
     }, [userId]);
 
-    /* ================================
-       FILTERED DECK
-    ================================= */
+
+    //FILTERED DECK
     const filteredCards = useMemo(() => {
         return filter === "todos"
             ? cards
@@ -41,9 +41,8 @@ export function SwipeDeck() {
         setCards((prev) => prev.filter((c) => c.id !== current.id));
     };
 
-    /* ================================
-       ACTIONS
-    ================================= */
+
+    //ACTIONS
     const [processing, setProcessing] = useState(false);
 
     const handleLike = async () => {
@@ -73,11 +72,10 @@ export function SwipeDeck() {
     };
 
 
-    /* ================================
-       RENDER
-    ================================= */
+
+    //RENDER
     if (!userId) {
-        return null; // aquí sí, porque no debería pasar
+        return null;
     }
 
     if (loading) {
@@ -108,12 +106,15 @@ export function SwipeDeck() {
                                 profile={current}
                                 onLike={handleLike}
                                 onDislike={handleDislike}
+                                showDetails={showDetails}
+                                onOpenDetails={() => setShowDetails(true)}
+                                onCloseDetails={() => setShowDetails(false)}
                             />
 
                             <ActionButtons
                                 onLike={handleLike}
                                 onDislike={handleDislike}
-                                onSuperLike={handleLike}
+                                onSuperLike={() => setShowDetails(true)}
                             />
                         </>
                     ) : (

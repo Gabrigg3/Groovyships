@@ -7,15 +7,13 @@ import { Heart, ArrowLeft, Users } from "lucide-react";
 import { authApi } from "@/api/authApi";
 import { useAuthStore } from "@/store/authStore";
 
-/* ================================
-   TYPES
-================================= */
+
+//TYPES
 type LookingFor = "romance" | "amistad";
 type Gender = "hombre" | "mujer" | "otro";
 
-/* ================================
-   CONSTANTS
-================================= */
+
+//CONSTANTS
 const LOOKING_FOR_OPTIONS = [
     { value: "romance", label: "💕 Romance", gradient: "bg-gradient-1" },
     { value: "amistad", label: "🤝 Amistad", gradient: "bg-gradient-friendship" },
@@ -27,9 +25,8 @@ const GENDER_OPTIONS = [
     { value: "otro", label: "🌈 Otros" },
 ] as const;
 
-/* ================================
-   COMPONENT
-================================= */
+
+//COMPONENT
 export function RegisterStep5() {
     const navigate = useNavigate();
     const setSession = useAuthStore((s) => s.setSession);
@@ -45,9 +42,8 @@ export function RegisterStep5() {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    /* ================================
-       VALIDATION
-    ================================= */
+
+    //VALIDATION
     const validate = () => {
         const e: Record<string, string> = {};
 
@@ -81,9 +77,8 @@ export function RegisterStep5() {
         return Object.keys(e).length === 0;
     };
 
-    /* ================================
-       SUBMIT FINAL
-    ================================= */
+
+    //SUBMIT FINAL
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validate()) return;
@@ -119,27 +114,26 @@ export function RegisterStep5() {
         try {
             const { accessToken, userId } = await authApi.register(payload);
 
-            // 🧹 limpiar SOLO pasos de registro
             localStorage.removeItem("registerStep1");
             localStorage.removeItem("registerStep2");
             localStorage.removeItem("registerStep3");
             localStorage.removeItem("registerStep4");
 
-            // 🔑 guardar sesión
+
             setSession(accessToken, userId ?? null);
 
-            // 👉 entrar en la app
             navigate("/");
         } catch (err) {
-            console.error("❌ Error en registro", err);
+            console.error("+ Error en registro", err);
             alert("Error al completar el registro");
         } finally {
             setIsSubmitting(false);
         }
     };
-    /* ================================
-       RENDER
-    ================================= */
+
+
+    //RENDER
+
     return (
         <div className="min-h-screen bg-gradient-1 flex items-center justify-center p-4">
             <Card className="w-full max-w-md bg-card border-0 shadow-2xl p-8 lg:p-10">

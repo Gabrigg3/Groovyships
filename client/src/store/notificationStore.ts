@@ -110,7 +110,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
                 };
             });
         } catch (e) {
-            console.error("❌ Error marking notification as read", e);
+            console.error("+ Error marking notification as read", e);
         }
     },
 
@@ -128,7 +128,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
                 unreadCount: 0,
             }));
         } catch (e) {
-            console.error("❌ Error marking all notifications as read", e);
+            console.error("+ Error marking all notifications as read", e);
         }
     },
 

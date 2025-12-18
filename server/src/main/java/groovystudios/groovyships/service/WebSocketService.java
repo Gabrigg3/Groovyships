@@ -14,7 +14,7 @@ public class WebSocketService {
         this.messagingTemplate = messagingTemplate;
     }
 
-    // 💬 Mensajes de conversación (broadcast)
+    //Mensajes de conversación (broadcast)
     public void sendMessageToConversation(String conversationId, MessageEvent event) {
         messagingTemplate.convertAndSend(
                 "/topic/conversations/" + conversationId,
@@ -22,10 +22,10 @@ public class WebSocketService {
         );
     }
 
-    // 🔔 Notificación privada a usuario
+    //Notificación privada a usuario
     public void sendNotificationToUser(String userId, NotificationEvent event) {
 
-        System.out.println("📨 WebSocket sendNotificationToUser");
+        System.out.println("+ WebSocket sendNotificationToUser");
         System.out.println("   destination = /queue/notifications/" + userId);
         System.out.println("   event = " + event);
 

@@ -18,9 +18,7 @@ public class NotificationController {
         this.notificationService = notificationService;
     }
 
-    // --------------------------------------------------
-    // TODAS LAS NOTIFICACIONES DEL USUARIO
-    // --------------------------------------------------
+    //TODAS LAS NOTIFICACIONES DEL USUARIO
     @GetMapping
     public ResponseEntity<List<NotificationResponse>> getAll(
             Authentication authentication
@@ -35,9 +33,8 @@ public class NotificationController {
         );
     }
 
-    // --------------------------------------------------
-    // SOLO NOTIFICACIONES NO LEÍDAS
-    // --------------------------------------------------
+
+    //SOLO NOTIFICACIONES NO LEÍDAS
     @GetMapping("/unread")
     public ResponseEntity<List<NotificationResponse>> getUnread(
             Authentication authentication
@@ -52,9 +49,8 @@ public class NotificationController {
         );
     }
 
-    // --------------------------------------------------
-    // MARCAR UNA NOTIFICACIÓN COMO LEÍDA
-    // --------------------------------------------------
+
+    //MARCAR UNA NOTIFICACIÓN COMO LEÍDA
     @PostMapping("/{notificationId}/read")
     public ResponseEntity<Void> markAsRead(
             @PathVariable String notificationId,
@@ -66,9 +62,8 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
-    // --------------------------------------------------
-    // MARCAR TODAS COMO LEÍDAS
-    // --------------------------------------------------
+
+    //MARCAR TODAS COMO LEÍDAS
     @PostMapping("/read-all")
     public ResponseEntity<Void> markAllAsRead(
             Authentication authentication

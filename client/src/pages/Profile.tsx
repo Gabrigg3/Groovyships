@@ -57,9 +57,8 @@ export function Profile() {
     const [interestMap, setInterestMap] = useState<Record<string, string>>({});
     const [isEditingHeader, setIsEditingHeader] = useState(false);
 
-    /* ================================
-       LOAD PROFILE
-    ================================= */
+
+    //LOAD PROFILE
     useEffect(() => {
         profileApi.getMe().then((data) => {
             setProfileData({
@@ -81,9 +80,8 @@ export function Profile() {
         });
     }, []);
 
-    //================================
-    //   INTERESTS
-    //=================================
+
+    //INTERESTS
     useEffect(() => {
         interestsApi.getAll().then((interests) => {
             const map: Record<string, string> = {};
@@ -100,9 +98,8 @@ export function Profile() {
         return <div className="pt-20 text-center">Cargando perfil…</div>;
     }
 
-    /* ================================
-       SAVE PROFILE
-    ================================= */
+
+    //SAVE PROFILE
     const saveProfile = async () => {
         if (!profileData) return;
 
@@ -133,7 +130,7 @@ export function Profile() {
 
         } catch (err) {
             console.error("Error guardando perfil", err);
-            alert("❌ Error al guardar el perfil");
+            alert("+ Error al guardar el perfil");
         } finally {
             setIsSaving(false);
         }

@@ -21,9 +21,8 @@ import { useAuthStore } from "@/store/authStore";
 import type { MessageResponse } from "@/models/MessageResponse";
 import type { InfoCard } from "@/models/InfoCard";
 
-/* ---------------------------------------
-   TIPOS
---------------------------------------- */
+
+//TIPOS
 type UIMessage = {
     id: string;
     sender: "me" | "other";
@@ -33,18 +32,16 @@ type UIMessage = {
     mediaUrl?: string;
 };
 
-/* ---------------------------------------
-   COMPONENTE
---------------------------------------- */
+
+//COMPONENTE
 export function ChatWindow() {
     const { chatId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
     const { userId } = useAuthStore();
 
-    /* ---------------------------------------
-       PERFIL DEL OTRO USUARIO
-    --------------------------------------- */
+
+    //PERFIL DEL OTRO USUARIO
     const { otherUserId, otherUserName, otherUserImage } =
     (location.state as {
         otherUserId: string;
@@ -71,23 +68,20 @@ export function ChatWindow() {
         });
     }, [otherUserId, otherUserName, otherUserImage]);
 
-    /* ---------------------------------------
-       ESTADO
-    --------------------------------------- */
+
+    //ESTADO
     const [messages, setMessages] = useState<UIMessage[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [showMediaOptions, setShowMediaOptions] = useState(false);
 
-    /* ---------------------------------------
-       REFS FILE INPUTS
-    --------------------------------------- */
+
+    //REFS FILE INPUTS
     const imageInputRef = useRef<HTMLInputElement>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
     const audioFileInputRef = useRef<HTMLInputElement>(null);
 
-    /* ---------------------------------------
-       AUDIO RECORDING
-    --------------------------------------- */
+
+    //AUDIO RECORDING
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
     const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -95,9 +89,8 @@ export function ChatWindow() {
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
 
-    /* ---------------------------------------
-       HELPERS
-    --------------------------------------- */
+
+    //HELPERS
     const formatTime = (seconds: number) =>
         `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 
@@ -113,9 +106,8 @@ export function ChatWindow() {
         mediaUrl: msg.type !== "TEXT" ? msg.content : undefined,
     });
 
-    /* ---------------------------------------
-       CARGA INICIAL + WS
-    --------------------------------------- */
+
+    //CARGA INICIAL + WS
     useEffect(() => {
         if (!chatId) return;
         messagesApi.getMessages(chatId).then((data) => {
@@ -127,18 +119,16 @@ export function ChatWindow() {
         setMessages((prev) => [...prev, mapMessage(msg)]);
     });
 
-    /* ---------------------------------------
-       ENVÍO TEXTO
-    --------------------------------------- */
+
+    //ENVÍO TEXTO
     const handleSendText = async () => {
         if (!inputValue.trim() || !chatId) return;
         await messagesApi.sendMessage(chatId, "TEXT", inputValue);
         setInputValue("");
     };
 
-    /* ---------------------------------------
-       ENVÍO ARCHIVOS
-    --------------------------------------- */
+
+    //ENVÍO ARCHIVOS
     const handleFileUpload = async (
         file: File,
         type: "image" | "video" | "audio"
@@ -153,9 +143,8 @@ export function ChatWindow() {
         setShowMediaOptions(false);
     };
 
-    /* ---------------------------------------
-       AUDIO GRABADO
-    --------------------------------------- */
+
+    //AUDIO GRABADO
     const startRecording = async () => {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const recorder = new MediaRecorder(stream);
@@ -195,9 +184,8 @@ export function ChatWindow() {
         setRecordingTime(0);
     };
 
-    /* ---------------------------------------
-       RENDER
-    --------------------------------------- */
+
+    //RENDER
     return (
         <div className="pt-16 lg:pt-20 min-h-screen bg-background flex flex-col">
             {/* HEADER */}
@@ -236,7 +224,7 @@ export function ChatWindow() {
                                 )}
                                 {m.type === "audio" && (
                                     <div className="flex items-center gap-2">
-                                        <Play className="w-4 h-4" />
+                                        <Play className="w-0 h-0" />
                                         <audio src={m.mediaUrl} controls />
                                     </div>
                                 )}

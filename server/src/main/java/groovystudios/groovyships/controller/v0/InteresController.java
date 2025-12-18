@@ -19,4 +19,17 @@ public class InteresController {
     public List<Interes> getAllInterests() {
         return interesService.getAll();
     }
+
+
+    @PostMapping
+    public Interes createInterest(@RequestBody Interes interes) {
+        return interesService.create(interes);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteInterest(@PathVariable String id) {
+        interesService.delete(id);
+    }
+
+
 }

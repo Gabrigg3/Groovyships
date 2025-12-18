@@ -7,17 +7,27 @@ import {
 } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { InfoCard } from "@/models/InfoCard";
-import { Heart, X, MapPin, Briefcase } from "lucide-react";
+import { Heart, X, MapPin, Briefcase, Info } from "lucide-react";
+import {interestsApi} from "@/api/interestsApi";
 
 interface SwipeCardProps {
     profile: InfoCard;
     onLike: () => void;
     onDislike: () => void;
+
+    showDetails: boolean;
+    onOpenDetails: () => void;
+    onCloseDetails: () => void;
 }
 
-export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
+
+export function SwipeCard({ profile,
+                              onLike,
+                              onDislike,
+                              showDetails,
+                              onOpenDetails,
+                              onCloseDetails, }: SwipeCardProps) {
     const [currentImage, setCurrentImage] = useState(0);
-    const [showDetails, setShowDetails] = useState(false);
     const [exitX, setExitX] = useState<number | null>(null);
     const [locked, setLocked] = useState(false);
 
@@ -29,28 +39,47 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
     const likeOpacity = useTransform(x, [40, 120], [0, 1]);
     const dislikeOpacity = useTransform(x, [-120, -40], [1, 0]);
 
-    /* ================================
-       RESET WHEN PROFILE CHANGES
-    ================================= */
+    const [interestMap, setInterestMap] = useState<Record<string, string>>({});
+
+
+    //RESET WHEN PROFILE CHANGES
     useEffect(() => {
         setCurrentImage(0);
-        setShowDetails(false);
+        onCloseDetails();
         setExitX(null);
         setLocked(false);
         x.set(0);
         y.set(0);
     }, [profile.id, x, y]);
 
-    /* ================================
-       DRAG END LOGIC
-    ================================= */
+    useEffect(() => {
+        interestsApi.getAll().then((interests) => {
+            const map: Record<string, string> = {};
+            interests.forEach((i) => {
+                map[i.id] = i.nombre;
+            });
+            setInterestMap(map);
+        });
+    }, []);
+
+    useEffect(() => {
+        const open = () => onOpenDetails();
+        document.addEventListener("open-details", open);
+
+        return () => {
+            document.removeEventListener("open-details", open);
+        };
+    }, []);
+
+
+    //DRAG END LOGIC
     const handleDragEnd = (_: any, info: any) => {
         if (locked) return;
 
         const { offset } = info;
 
         if (offset.y < -120 && Math.abs(offset.x) < 80) {
-            setShowDetails(true);
+            onOpenDetails();
             x.set(0);
             y.set(0);
             return;
@@ -74,9 +103,7 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
         y.set(0);
     };
 
-    /* ================================
-       IMAGE TAP
-    ================================= */
+    //IMAGE TAP
     const handleImageClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (profile.images.length === 0) return;
@@ -145,6 +172,8 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
                             <X className="w-10 h-10" />
                         </motion.div>
 
+
+
                         {/* Overlay */}
                         <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-6">
                             <div className="flex gap-2 mb-3">
@@ -167,16 +196,14 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
                             </p>
 
                             <p className="text-white/70 text-sm text-center mt-4">
-                                ⬆️ Desliza hacia arriba para ver más
+                                ⬆️ Desliza hacia arriba para ver más ⬆️
                             </p>
                         </div>
                     </div>
                 </Card>
             </motion.div>
 
-            {/* ================================
-               DETAILS MODAL
-            ================================= */}
+            {/* DETAILS MODAL */}
             <AnimatePresence>
                 {showDetails && (
                     <motion.div
@@ -184,7 +211,7 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        onClick={() => setShowDetails(false)}
+                        onClick={onCloseDetails}
                     >
                         <motion.div
                             className="w-full max-w-2xl bg-card rounded-t-3xl max-h-[90vh] overflow-y-auto"
@@ -198,7 +225,7 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
                                 <h3 className="text-xl font-bold">
                                     {profile.name}, {profile.age}
                                 </h3>
-                                <button onClick={() => setShowDetails(false)}>
+                                <button onClick={onCloseDetails}>
                                     <X />
                                 </button>
                             </div>
@@ -245,16 +272,17 @@ export function SwipeCard({ profile, onLike, onDislike }: SwipeCardProps) {
                                 <div>
                                     <h4 className="font-bold mb-2">Intereses</h4>
                                     <div className="flex flex-wrap gap-2">
-                                        {profile.interests.map((i) => (
+                                        {profile.interests.map((interestId) => (
                                             <span
-                                                key={i}
+                                                key={interestId}
                                                 className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm"
                                             >
-                                                {i}
-                                            </span>
+                                        {interestMap[interestId] ?? interestId}
+                                    </span>
                                         ))}
                                     </div>
                                 </div>
+
                             </div>
                         </motion.div>
                     </motion.div>

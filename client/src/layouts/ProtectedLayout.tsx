@@ -10,7 +10,7 @@ import { useAuthStore } from "@/store/authStore";
 import { usersApi } from "@/api/userApi";
 
 export function ProtectedLayout() {
-    // 🔔 socket global
+
     useNotificationSocket();
 
     const userId = useAuthStore((s) => s.userId);
@@ -29,7 +29,7 @@ export function ProtectedLayout() {
         }
     }, [matchedProfile, openMatchModal]);
 
-    // 👤 cargar usuario logueado UNA sola vez
+    //Cargar usuario logueado UNA sola vez
     useEffect(() => {
         if (!userId || currentUser) return;
 

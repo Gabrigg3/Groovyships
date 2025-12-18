@@ -5,7 +5,7 @@ export function AuthGate() {
     const { hydrated, accessToken } = useAuthStore();
 
     if (!hydrated) {
-        return null; // o spinner
+        return null;
     }
 
     if (!accessToken) {

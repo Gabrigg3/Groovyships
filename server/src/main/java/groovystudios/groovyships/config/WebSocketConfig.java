@@ -21,7 +21,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry
                 .addEndpoint("/ws")
-                // ⚠️ NO HandshakeInterceptor para auth
+                //NO HandshakeInterceptor para auth
                 .setAllowedOrigins(
                         "http://localhost:5173",
                         "http://localhost:5174"
@@ -33,7 +33,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/topic", "/queue");
         registry.setApplicationDestinationPrefixes("/app");
-        registry.setUserDestinationPrefix("/user"); // 🔑 IMPRESCINDIBLE
+        registry.setUserDestinationPrefix("/user");
     }
 
     @Override

@@ -26,7 +26,7 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
 
     private final String jwtSecret = "GroovyshipsGroovyJsonGroovyWebGroovyTokenGN";
-    private final long jwtExpirationMs = 1000 * 60 * 15; // 15 minutos
+    private final long jwtExpirationMs = 1000 * 60 * 30; // 30 minutos
     private final long refreshExpirationMs = 1000 * 60 * 60 * 24 * 2; // 2 días
 
     @Autowired
@@ -38,9 +38,7 @@ public class AuthenticationService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // --------------------------
     // REGISTRO
-    // --------------------------
     public User register(User user) {
 
         // Asignar ID secuencial u001, u002…
@@ -59,9 +57,8 @@ public class AuthenticationService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
 
-    // --------------------------
+
     // GENERAR JWT
-    // --------------------------
     public String generateAccessToken(User user) {
         return Jwts.builder()
                 .setSubject(user.getId())
@@ -81,9 +78,8 @@ public class AuthenticationService {
         return refreshRepo.save(refresh);
     }
 
-    // --------------------------
+
     // LOGIN
-    // --------------------------
     public User login(String email, String password) {
 
         if (email == null || password == null) {
@@ -100,9 +96,8 @@ public class AuthenticationService {
         return user;
     }
 
-    // --------------------------
+
     // VALIDAR REFRESH TOKEN
-    // --------------------------
     public RefreshToken refreshToken(String token) {
 
         RefreshToken refreshToken = refreshRepo.findByToken(token)
@@ -131,7 +126,7 @@ public class AuthenticationService {
                 .parseClaimsJws(token)
                 .getBody();
 
-        String userId = claims.getSubject();  // el "sub" del JWT
+        String userId = claims.getSubject();
 
         if (userId == null) {
             throw new RuntimeException("Token sin usuario");

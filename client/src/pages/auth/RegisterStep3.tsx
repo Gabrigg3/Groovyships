@@ -15,7 +15,7 @@ export function RegisterStep3() {
         useRef<HTMLInputElement>(null),
     ];
 
-    // URLs finales de Cloudinary
+    //URLs finales de Cloudinary
     const [photos, setPhotos] = useState<(string | null)[]>([
         null,
         null,
@@ -23,12 +23,11 @@ export function RegisterStep3() {
         null,
     ]);
 
-    // índice que se está subiendo (mejor que boolean)
+    //Indice que se está subiendo (mejor que boolean)
     const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
-    /* ================================
-       HANDLE PHOTO UPLOAD
-    ================================= */
+
+    //HANDLE PHOTO UPLOAD
     const handlePhotoChange = async (
         index: number,
         e: React.ChangeEvent<HTMLInputElement>
@@ -48,16 +47,15 @@ export function RegisterStep3() {
             });
         } catch (error) {
             console.error(error);
-            alert("❌ Error subiendo la foto");
+            alert("+ Error subiendo la foto");
         } finally {
             setUploadingIndex(null);
-            e.target.value = ""; // 🔥 permite volver a subir el mismo archivo
+            e.target.value = "";
         }
     };
 
-    /* ================================
-       REMOVE PHOTO
-    ================================= */
+
+    //REMOVE PHOTO
     const handleRemovePhoto = (index: number) => {
         setPhotos((prev) => {
             const copy = [...prev];
@@ -66,9 +64,8 @@ export function RegisterStep3() {
         });
     };
 
-    /* ================================
-       CONTINUE
-    ================================= */
+
+    //CONTINUE
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -84,9 +81,8 @@ export function RegisterStep3() {
         navigate("/register/step4");
     };
 
-    /* ================================
-       SKIP
-    ================================= */
+
+    //SKIP
     const handleSkip = () => {
         localStorage.setItem(
             "registerStep3",

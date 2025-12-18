@@ -10,13 +10,12 @@ export function useBootstrapAuth() {
         authApi
             .refresh()
             .then(({ accessToken }) => {
-                // 🔑 el refresh NO cambia de usuario
+
                 const currentUserId = useAuthStore.getState().userId;
                 setSession(accessToken, currentUserId);
             })
             .catch(() => {
-                // ❌ NO clearSession aquí
-                // Solo significa que no había sesión previa
+
             })
             .finally(() => {
                 setHydrated();

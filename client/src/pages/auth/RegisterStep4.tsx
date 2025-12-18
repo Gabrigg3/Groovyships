@@ -15,9 +15,8 @@ export function RegisterStep4() {
     const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    // --------------------------------------------------
-    // CARGAR INTERESES DESDE BACKEND
-    // --------------------------------------------------
+
+    //CARGAR INTERESES DESDE BACKEND
 
     /*
     *
@@ -39,9 +38,8 @@ export function RegisterStep4() {
 
     }, []);
 
-    // --------------------------------------------------
-    // VALIDACIÓN
-    // --------------------------------------------------
+
+    //VALIDACIÓN
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
@@ -57,9 +55,8 @@ export function RegisterStep4() {
         return Object.keys(newErrors).length === 0;
     };
 
-    // --------------------------------------------------
-    // TOGGLE INTERÉS (POR ID)
-    // --------------------------------------------------
+
+    //TOGGLE INTERÉS (POR ID)
     const toggleInterest = (interestId: string) => {
         if (selectedInterests.includes(interestId)) {
             setSelectedInterests(selectedInterests.filter((i) => i !== interestId));
@@ -68,9 +65,8 @@ export function RegisterStep4() {
         }
     };
 
-    // --------------------------------------------------
-    // SUBMIT
-    // --------------------------------------------------
+
+    //SUBMIT
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (validateForm()) {
@@ -82,9 +78,8 @@ export function RegisterStep4() {
         }
     };
 
-    // --------------------------------------------------
-    // RENDER
-    // --------------------------------------------------
+
+    //RENDER
     return (
         <div className="min-h-screen bg-gradient-1 flex items-center justify-center p-4">
             <Card className="w-full max-w-4xl bg-card text-card-foreground border-0 shadow-2xl p-8 lg:p-10 max-h-[90vh] overflow-y-auto">
@@ -105,7 +100,7 @@ export function RegisterStep4() {
                         Tus Intereses
                     </h1>
                     <p className="text-muted-foreground text-center font-body">
-                        Paso 3 de 4: Selecciona tus intereses
+                        Paso 4 de 5: Selecciona tus intereses
                     </p>
                     <p className="text-primary text-sm font-semibold font-body mt-2">
                         {selectedInterests.length} / 15 seleccionados

@@ -27,7 +27,7 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
         if (accessor == null) return message;
 
-        // 🔑 AUTENTICAR SOLO EN CONNECT
+        //AUTENTICAR SOLO EN CONNECT
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
 
             String authHeader = accessor.getFirstNativeHeader("Authorization");
@@ -40,10 +40,10 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
             User user = authService.validateAccessToken(token);
 
-            // 🔥 PRINCIPAL REAL PARA SPRING
+            //PRINCIPAL REAL PARA SPRING
             accessor.setUser(() -> user.getId());
 
-            // DEBUG ÚTIL
+            //Debug
             System.out.println("🟢 WS CONNECT USER = " + user.getId());
         }
 

@@ -90,4 +90,13 @@ public class MatchController {
                 ))
                 .toList();
     }
+
+
+    @DeleteMapping("/{userId}/break/{targetId}")
+    public void breakMatch(
+            @PathVariable String userId,
+            @PathVariable String targetId
+    ) {
+        matchService.breakMatch(userId, targetId);
+    }
 }

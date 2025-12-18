@@ -28,10 +28,10 @@ export function Login() {
                 password: formData.password,
             });
 
-            // 🔑 guardar sesión (fuente de verdad)
+            //Guardar sesión (fuente de verdad)
             setSession(accessToken, userId ?? null);
 
-            // 👉 el router reaccionará solo
+            //El router reaccionará solo
             navigate("/");
         } catch (err) {
             console.error("Error en login:", err);
